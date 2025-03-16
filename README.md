@@ -41,3 +41,11 @@ Query builder: <https://www.visualcrossing.com/weather-query-builder/#>
   - Mt Washington = wind
   - Louisiana = humid
 - Drop the image into ChatGPT to get starting point for UI
+
+## UI Progression
+
+Initial prototype
+
+![](docs/initial_ui_wide.png)
+
+![](docs/initial_ui_mobile.png)

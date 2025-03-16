@@ -1,5 +1,3 @@
-import React from "react";
-
 /**
  * Header component
  * Maps to the wireframe's top bar with:
