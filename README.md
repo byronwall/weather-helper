@@ -31,3 +31,13 @@ General UI that needs built:
 Sample URL: <https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/70601?unitGroup=us&key={key}&contentType=json>
 
 Query builder: <https://www.visualcrossing.com/weather-query-builder/#>
+
+## Steps and approach
+
+- Get API access - download test data for diverse set of locations
+  - Indy = home
+  - Alaska = cold
+  - Hawaii = hot
+  - Mt Washington = wind
+  - Louisiana = humid
+- Drop the image into ChatGPT to get starting point for UI
