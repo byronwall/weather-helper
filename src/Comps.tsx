@@ -12,7 +12,7 @@ export function Header() {
       {/* Left side: Brand & Location */}
       <div className="flex flex-col space-y-2 md:flex-row md:space-y-0 md:items-center md:space-x-6">
         {/* Logo / Brand Name */}
-        <div className="text-2xl font-bold">Weekly RainCheck</div>
+        <div className="text-2xl font-bold">Weather or Not</div>
 
         {/* Location Info */}
         <div className="flex items-center space-x-1 text-sm text-gray-600">
