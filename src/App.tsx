@@ -2,6 +2,7 @@ import * as React from "react";
 import { Header } from "./Header";
 import { WeatherCard } from "./WeatherCard";
 import { useWeatherStore } from "./stores/weatherStore";
+import { UserPreferences } from "./components/UserPreferences";
 
 export function App() {
   const { loadSampleData } = useWeatherStore();
@@ -39,21 +40,18 @@ export function App() {
   nextFridayDate.setDate(currentDate.getDate() + 7);
 
   return (
-    <div className="bg-gray-50 text-gray-800 min-h-screen">
-      {/* Container with standard Tailwind max-width and padding */}
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6">
-        <Header />
-
-        {/* Main content: 2 weather cards side by side on desktop */}
-        <main className="flex flex-col space-y-8 md:flex-row md:space-y-0 md:space-x-8">
-          {/* Current Friday Card */}
+    <div className="min-h-screen bg-gray-100">
+      <Header />
+      <main className="container mx-auto p-4 space-y-4">
+        <UserPreferences />
+        <div className="flex flex-row gap-4">
           <WeatherCard
             date={currentDate}
             location="46220"
             onPrevious={handlePreviousFriday}
             onNext={handleNextFriday}
+            nextLabel={`Next Friday (${nextFridayDate.toLocaleDateString()})`}
           />
-
           {/* Next Friday Card */}
           <WeatherCard
             date={nextFridayDate}
@@ -61,8 +59,8 @@ export function App() {
             onPrevious={handlePreviousFriday}
             onNext={handleNextFriday}
           />
-        </main>
-      </div>
+        </div>
+      </main>
     </div>
   );
 }

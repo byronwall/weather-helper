@@ -1,6 +1,7 @@
 import { WeatherField } from "./types/user";
 import { HourReading } from "./types/api";
 import { useCommonAxis } from "./stores/useCommonAxis";
+import { useUserPrefs, WeatherPreference } from "./stores/userPrefsStore";
 import { useEffect } from "react";
 
 interface WeatherChartProps {
@@ -13,13 +14,6 @@ interface DataPoint {
   value: number;
 }
 
-interface ShadingRegion {
-  startTime: number;
-  endTime: number;
-  color: string;
-  gutter: "top" | "bottom";
-}
-
 // Format time as "8PM"
 function formatTime(timestamp: number): string {
   const date = new Date(timestamp);
@@ -28,47 +22,36 @@ function formatTime(timestamp: number): string {
     .replace(" ", "");
 }
 
+// Map WeatherField to preference key
+const fieldToPreferenceKey: Record<WeatherField, keyof WeatherPreference> = {
+  temp: "temperature",
+  windspeed: "windSpeed",
+  precipprob: "precipitation",
+  humidity: "humidity",
+};
+
 export function WeatherChart({ hourlyData, field }: WeatherChartProps) {
   const { registerLimit, getCurrentLimits, defaultLimits } = useCommonAxis();
+  const { preferences } = useUserPrefs();
 
-  // Example props (could be pulled in from parent or external data):
+  // Get the corresponding preference key for this field
+  const preferenceKey = fieldToPreferenceKey[field];
+  const fieldPreferences = preferences[preferenceKey];
+
   const width = 600;
   const height = 300;
   const topGutterHeight = 30;
-  const bottomGutterHeight = 50; // Increased to accommodate time labels
-  const leftGutterWidth = 50; // Added for y-axis labels
-  const rightGutterWidth = 20; // Added for right padding
+  const bottomGutterHeight = 50;
+  const leftGutterWidth = 50;
+  const rightGutterWidth = 20;
 
   // Convert hourly data to DataPoints
   const data: DataPoint[] = hourlyData.map((hour) => ({
-    time: hour.datetimeEpoch * 1000, // convert seconds to milliseconds
+    time: hour.datetimeEpoch * 1000,
     value: hour[field],
   }));
 
-  console.log("test data", {
-    hourlyDataSample: hourlyData[0],
-    dataSample: data[0],
-  });
-
-  // Example shading in top/bottom gutters:
-  // This says: shade top gutter from time=1678886400000 to 1678887600000 in red,
-  // and bottom gutter from time=1678889000000 to 1678890200000 in blue.
-  const shadingRegions: ShadingRegion[] = [
-    {
-      startTime: 1678886400000,
-      endTime: 1678887600000,
-      color: "rgba(255, 0, 0, 0.3)",
-      gutter: "top",
-    },
-    {
-      startTime: 1678889000000,
-      endTime: 1678890200000,
-      color: "rgba(0, 0, 255, 0.3)",
-      gutter: "bottom",
-    },
-  ];
-
-  // 1) Determine min/max time & value:
+  // Determine min/max time & value
   const times = data.map((d) => d.time);
   const values = data.map((d) => d.value);
 
@@ -76,7 +59,7 @@ export function WeatherChart({ hourlyData, field }: WeatherChartProps) {
   const maxTime = Math.max(...times);
 
   // Calculate the actual min/max from data with padding
-  const paddingFactor = 0.1; // 10% padding
+  const paddingFactor = 0.1;
   const valueRange = Math.max(...values) - Math.min(...values);
   const padding = valueRange * paddingFactor;
 
@@ -94,49 +77,54 @@ export function WeatherChart({ hourlyData, field }: WeatherChartProps) {
   // Use default color for the chart
   const chartColor = defaultLimits[field].color;
 
-  // Compute chart dimension for the central region:
+  // Compute chart dimension for the central region
   const chartHeight = height - topGutterHeight - bottomGutterHeight;
   const chartWidth = width - leftGutterWidth - rightGutterWidth;
 
-  // 2) Scale functions (simple linear scales):
+  // Scale functions
   const xScale = (t: number): number =>
     leftGutterWidth + ((t - minTime) / (maxTime - minTime)) * chartWidth;
 
-  const yScale = (val: number): number => {
-    // invert so higher values appear higher on the chart
-    return (
-      topGutterHeight +
-      chartHeight -
-      ((val - minValue) / (maxValue - minValue)) * chartHeight
-    );
-  };
+  const yScale = (val: number): number =>
+    topGutterHeight +
+    chartHeight -
+    ((val - minValue) / (maxValue - minValue)) * chartHeight;
 
-  // 3) Split data into segments if there's a time gap:
-  //    This example uses a threshold of 10 minutes in ms: 10 * 60 * 1000
+  // Split data into segments and determine line thickness based on preferences
   const gapThreshold = 70 * 60 * 1000;
-  const segments: DataPoint[][] = [];
+  const segments: Array<{ points: DataPoint[]; isInRange: boolean }> = [];
   let currentSegment: DataPoint[] = [];
+  let currentInRange = false;
 
   for (let i = 0; i < data.length; i++) {
     const point = data[i];
+    const isPointInRange = fieldPreferences
+      ? (!fieldPreferences.min || point.value >= fieldPreferences.min) &&
+        (!fieldPreferences.max || point.value <= fieldPreferences.max)
+      : false;
+
     if (currentSegment.length === 0) {
-      currentSegment.push(point);
+      currentSegment = [point];
+      currentInRange = isPointInRange;
     } else {
       const prevPoint = currentSegment[currentSegment.length - 1];
       const delta = point.time - prevPoint.time;
-      if (delta > gapThreshold) {
-        // close off the current segment
-        segments.push(currentSegment);
+
+      if (delta > gapThreshold || isPointInRange !== currentInRange) {
+        segments.push({ points: currentSegment, isInRange: currentInRange });
         currentSegment = [point];
+        currentInRange = isPointInRange;
       } else {
         currentSegment.push(point);
       }
     }
   }
-  // push the last segment if it has points
-  if (currentSegment.length > 0) segments.push(currentSegment);
 
-  // 4) Generate path d-attribute for each segment
+  if (currentSegment.length > 0) {
+    segments.push({ points: currentSegment, isInRange: currentInRange });
+  }
+
+  // Generate path d-attribute for each segment
   const generatePathD = (segment: DataPoint[]): string => {
     if (segment.length === 0) return "";
     let d = `M ${xScale(segment[0].time)},${yScale(segment[0].value)}`;
@@ -148,38 +136,67 @@ export function WeatherChart({ hourlyData, field }: WeatherChartProps) {
     return d;
   };
 
-  // 5) Render the shading as rectangles in top/bottom gutters:
-  const gutterRects = shadingRegions.map((region, idx) => {
-    const xStart = xScale(region.startTime);
-    const xEnd = xScale(region.endTime);
-    const rectWidth = xEnd - xStart;
+  // Generate preference lines and regions
+  const preferenceLines = [];
+  const gutterRegions = [];
 
-    if (region.gutter === "top") {
-      // top gutter: y=0, height=topGutterHeight
-      return (
-        <rect
-          key={idx}
-          x={xStart}
-          y={0}
-          width={rectWidth}
-          height={topGutterHeight}
-          fill={region.color}
+  if (fieldPreferences) {
+    if (fieldPreferences.min !== undefined) {
+      const y = yScale(fieldPreferences.min);
+      preferenceLines.push(
+        <line
+          key="min-line"
+          x1={leftGutterWidth}
+          y1={y}
+          x2={width - rightGutterWidth}
+          y2={y}
+          stroke={chartColor}
+          strokeWidth={1}
+          strokeDasharray="4,4"
         />
       );
-    } else {
-      // bottom gutter: y=topGutterHeight + chartHeight
-      return (
+
+      // Add bottom gutter region for values below min
+      gutterRegions.push(
         <rect
-          key={idx}
-          x={xStart}
-          y={topGutterHeight + chartHeight}
-          width={rectWidth}
-          height={bottomGutterHeight}
-          fill={region.color}
+          key="min-gutter"
+          x={leftGutterWidth}
+          y={y}
+          width={chartWidth}
+          height={chartHeight + topGutterHeight - y}
+          fill={`${chartColor}20`}
         />
       );
     }
-  });
+
+    if (fieldPreferences.max !== undefined) {
+      const y = yScale(fieldPreferences.max);
+      preferenceLines.push(
+        <line
+          key="max-line"
+          x1={leftGutterWidth}
+          y1={y}
+          x2={width - rightGutterWidth}
+          y2={y}
+          stroke={chartColor}
+          strokeWidth={1}
+          strokeDasharray="4,4"
+        />
+      );
+
+      // Add top gutter region for values above max
+      gutterRegions.push(
+        <rect
+          key="max-gutter"
+          x={leftGutterWidth}
+          y={topGutterHeight}
+          width={chartWidth}
+          height={y - topGutterHeight}
+          fill={`${chartColor}20`}
+        />
+      );
+    }
+  }
 
   // Generate axis ticks and gridlines
   const { increment } = defaultLimits[field];
@@ -203,15 +220,9 @@ export function WeatherChart({ hourlyData, field }: WeatherChartProps) {
     };
   });
 
-  // 6) Build the <svg> with axes and gridlines
-  const svgStyle = {
-    border: "1px solid #ccc",
-    background: "#fafafa",
-  };
-
   return (
-    <svg width={width} height={height} style={svgStyle}>
-      {/* Gridlines */}
+    <svg width={width} height={height} className="bg-white rounded-lg">
+      {/* Background gridlines */}
       {yTicks.map((tick, i) => (
         <line
           key={`grid-y-${i}`}
@@ -235,22 +246,32 @@ export function WeatherChart({ hourlyData, field }: WeatherChartProps) {
         />
       ))}
 
-      {/* Render shading first so lines appear on top */}
-      {gutterRects}
+      {/* Preference gutter regions */}
+      {gutterRegions}
 
-      {/* Render each discontinuous line segment */}
+      {/* Preference lines */}
+      {preferenceLines}
+
+      {/* Render each segment with appropriate thickness */}
       {segments.map((segment, idx) => {
-        const pathD = generatePathD(segment);
+        const pathD = generatePathD(segment.points);
         return (
           <g key={idx}>
-            <path d={pathD} fill="none" stroke={chartColor} strokeWidth={2} />
-            {/* Add circles for each data point */}
-            {segment.map((point, pointIdx) => (
+            <path
+              d={pathD}
+              fill="none"
+              stroke={chartColor}
+              strokeWidth={segment.isInRange ? 3 : 1}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+            {/* Add points */}
+            {segment.points.map((point, pointIdx) => (
               <circle
                 key={pointIdx}
                 cx={xScale(point.time)}
                 cy={yScale(point.value)}
-                r={3}
+                r={2}
                 fill={chartColor}
               />
             ))}
@@ -258,7 +279,7 @@ export function WeatherChart({ hourlyData, field }: WeatherChartProps) {
         );
       })}
 
-      {/* Y-axis line */}
+      {/* Axes */}
       <line
         x1={leftGutterWidth}
         y1={topGutterHeight}
@@ -267,8 +288,6 @@ export function WeatherChart({ hourlyData, field }: WeatherChartProps) {
         stroke="#666"
         strokeWidth={1}
       />
-
-      {/* X-axis line */}
       <line
         x1={leftGutterWidth}
         y1={topGutterHeight + chartHeight}
