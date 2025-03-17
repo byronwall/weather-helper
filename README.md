@@ -67,3 +67,5 @@ Initial prototype
 - Chart sizes
 - Add a small calendar strip that shows the available weather data - allow user to click and get charts for those days - default picks based on the day choice.
 - Chart margins and sizes
+- Drop a vertical cursor on a weather chart to get detailed data for that time - sync across all charts in a panel
+- Which weather fields to include in the charts and preferences - give list of toggles that will add them to the display.

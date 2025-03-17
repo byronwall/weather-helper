@@ -3,6 +3,7 @@ import { Header } from "./Header";
 import { WeatherCard } from "./WeatherCard";
 import { useWeatherStore } from "./stores/weatherStore";
 import { UserPreferences } from "./components/UserPreferences";
+import { DateList } from "./components/DateList";
 
 export function App() {
   const { loadSampleData } = useWeatherStore();
@@ -42,23 +43,30 @@ export function App() {
   return (
     <div className="min-h-screen bg-gray-100">
       <Header />
-      <main className="container mx-auto p-4 space-y-4">
-        <UserPreferences />
-        <div className="flex flex-row gap-4">
-          <WeatherCard
-            date={currentDate}
-            location="46220"
-            onPrevious={handlePreviousFriday}
-            onNext={handleNextFriday}
-            nextLabel={`Next Friday (${nextFridayDate.toLocaleDateString()})`}
-          />
-          {/* Next Friday Card */}
-          <WeatherCard
-            date={nextFridayDate}
-            location="46220"
-            onPrevious={handlePreviousFriday}
-            onNext={handleNextFriday}
-          />
+      <main className="container mx-auto p-4">
+        <div className="flex gap-4">
+          <div className="flex-none">
+            <DateList />
+          </div>
+          <div className="flex-1 space-y-4">
+            <UserPreferences />
+            <div className="flex flex-row gap-4">
+              <WeatherCard
+                date={currentDate}
+                location="46220"
+                onPrevious={handlePreviousFriday}
+                onNext={handleNextFriday}
+                nextLabel={`Next Friday (${nextFridayDate.toLocaleDateString()})`}
+              />
+              {/* Next Friday Card */}
+              <WeatherCard
+                date={nextFridayDate}
+                location="46220"
+                onPrevious={handlePreviousFriday}
+                onNext={handleNextFriday}
+              />
+            </div>
+          </div>
         </div>
       </main>
     </div>
