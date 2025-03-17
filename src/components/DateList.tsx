@@ -22,18 +22,36 @@ export function DateList() {
     }
   }, [selectedLocation, loadSampleData]);
 
-  // Get available dates
+  // Auto-select dates matching preferred day when it changes
+  useEffect(() => {
+    if (preferredDayOfWeek !== null) {
+      const availableDates = getAvailableDates();
+      const matchingDates = availableDates.filter(
+        (date) => date.getDay() === preferredDayOfWeek
+      );
+
+      // Select all matching dates that aren't already selected
+      matchingDates.forEach((date) => {
+        const isAlreadySelected = selectedDates.some(
+          (d) =>
+            d.toISOString().split("T")[0] === date.toISOString().split("T")[0]
+        );
+        if (!isAlreadySelected) {
+          toggleDateSelection(date);
+        }
+      });
+    }
+  }, [
+    preferredDayOfWeek,
+    getAvailableDates,
+    selectedDates,
+    toggleDateSelection,
+  ]);
+
+  // Get available dates and sort them
   const availableDates = getAvailableDates();
-
-  // Filter dates by preferred day of week if set
-  const filteredDates =
-    preferredDayOfWeek !== null
-      ? availableDates.filter((date) => date.getDay() === preferredDayOfWeek)
-      : availableDates;
-
-  // Sort dates in descending order (most recent first)
-  const sortedDates = [...filteredDates].sort(
-    (a, b) => b.getTime() - a.getTime()
+  const sortedDates = [...availableDates].sort(
+    (a, b) => a.getTime() - b.getTime()
   );
 
   return (
@@ -54,7 +72,6 @@ export function DateList() {
             ) : sortedDates.length === 0 ? (
               <div className="p-4 text-gray-500 text-center">
                 No dates available
-                {preferredDayOfWeek !== null && " for the selected day"}
               </div>
             ) : (
               sortedDates.map((date) => (
