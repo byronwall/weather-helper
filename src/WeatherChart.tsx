@@ -1,9 +1,9 @@
-import { WeatherField } from "./types/user";
-import { HourReading } from "./types/api";
+import { useEffect } from "react";
 import { useCommonAxis } from "./stores/useCommonAxis";
 import { useUserPrefs } from "./stores/userPrefsStore";
-import { useEffect } from "react";
-import { analyzePreferences, getPreferenceKey } from "./utils/preferenceHelper";
+import { HourReading } from "./types/api";
+import { WeatherField } from "./types/user";
+import { getPreferenceKey } from "./utils/preferenceHelper";
 
 interface WeatherChartProps {
   hourlyData: HourReading[];
@@ -25,23 +25,17 @@ function formatTime(timestamp: number): string {
 
 export function WeatherChart({ hourlyData, field }: WeatherChartProps) {
   const { registerLimit, getCurrentLimits, defaultLimits } = useCommonAxis();
-  const { preferences, minimumDuration } = useUserPrefs();
+  const { preferences } = useUserPrefs();
 
   // Get the corresponding preference key for this field
   const preferenceKey = getPreferenceKey(field);
   const fieldPreferences = preferences[preferenceKey];
 
   // Analyze preferences
-  const preferenceAnalysis = analyzePreferences(
-    hourlyData,
-    field,
-    preferences,
-    minimumDuration
-  );
 
   const width = 600;
-  const height = 300;
-  const topGutterHeight = 30;
+  const height = 150;
+  const topGutterHeight = 10;
   const bottomGutterHeight = 50;
   const leftGutterWidth = 50;
   const rightGutterWidth = 20;
@@ -388,16 +382,6 @@ export function WeatherChart({ hourlyData, field }: WeatherChartProps) {
           </g>
         ))}
       </svg>
-      {fieldPreferences && preferenceAnalysis.summary.totalDuration > 0 && (
-        <div className="text-sm text-gray-600">
-          {Math.round(preferenceAnalysis.summary.percentInRange)}% of time
-          within preferences (
-          {Math.round(
-            preferenceAnalysis.summary.inRangeDuration / (60 * 60 * 1000)
-          )}{" "}
-          hours)
-        </div>
-      )}
     </div>
   );
 }
