@@ -16,7 +16,7 @@ export function DateItem({
       onClick={onClick}
       disabled={!isAvailable}
       className={`
-        flex flex-col items-center justify-center p-1 w-16 h-24
+        flex flex-col items-center justify-center p-1 w-12 h-24
         transition-all duration-200 ease-in-out rounded-lg
         ${
           isAvailable

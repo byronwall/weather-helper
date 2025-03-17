@@ -11,16 +11,17 @@ import { WeatherField } from "./types/user";
 interface WeatherCardProps {
   date: Date;
   location: string;
+  width: number;
 }
 
-export function WeatherCard({ date, location }: WeatherCardProps) {
+export function WeatherCard({ date, location, width }: WeatherCardProps) {
   const { getWeatherForDate } = useWeatherStore();
   const { preferences, minimumDuration } = useUserPrefs();
   const dayData = getWeatherForDate(location, date);
 
   if (!dayData) {
     return (
-      <div className="bg-white rounded shadow p-4">
+      <div className="bg-white rounded shadow p-4" style={{ width }}>
         <p>No weather data available for this date and location.</p>
       </div>
     );
@@ -127,7 +128,7 @@ export function WeatherCard({ date, location }: WeatherCardProps) {
 
       {/* Chart Area */}
       <div className="bg-gray-100 rounded w-full">
-        <WeatherChartPanel hourlyData={dayData.hours} />
+        <WeatherChartPanel hourlyData={dayData.hours} width={width - 16} />
       </div>
     </div>
   );

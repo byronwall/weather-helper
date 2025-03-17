@@ -1,4 +1,5 @@
 import { useUserPrefs, WeatherPreference } from "../stores/userPrefsStore";
+import { ActivitySelector } from "./ActivitySelector";
 
 interface MetricConfig {
   label: string;
@@ -45,6 +46,9 @@ export function UserPreferences() {
     <div className="p-4 bg-white rounded-lg shadow max-w-2xl">
       <h2 className="text-xl font-bold mb-3">Weather Preferences</h2>
       <div className="space-y-4">
+        <div className="pb-4 border-b">
+          <ActivitySelector />
+        </div>
         <div className="flex items-center gap-4 border-b pb-4">
           <div className="w-28">
             <label className="font-medium">Min Duration</label>

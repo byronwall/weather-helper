@@ -55,7 +55,7 @@ export function DateList() {
   );
 
   return (
-    <div className="bg-white rounded-lg shadow">
+    <div className="bg-white rounded-lg shadow w-fit mx-auto">
       <div className="p-4 space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-semibold text-gray-800">
