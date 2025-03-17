@@ -1,10 +1,13 @@
 # Weather Helper
 
-General plan:
+## Specific steps
 
+- Process the JSON data into a more usable format
 - Stand up a quick front end to render weather data
 - Wire up loading a sample set of JSON from public
 - Wire up the API calls to Visual Crossing
+
+## Overview
 
 UX table stakes:
 
