@@ -1,5 +1,7 @@
 import { WeatherField } from "./types/user";
 import { HourReading } from "./types/api";
+import { useCommonAxis } from "./stores/useCommonAxis";
+import { useEffect } from "react";
 
 interface WeatherChartProps {
   hourlyData: HourReading[];
@@ -26,36 +28,9 @@ function formatTime(timestamp: number): string {
     .replace(" ", "");
 }
 
-type ChartVisual = {
-  color: string;
-  min: number;
-  max: number;
-};
-
-const defaultChartVisuals: Record<WeatherField, ChartVisual> = {
-  temp: {
-    color: "red",
-    min: 40,
-    max: 100,
-  },
-  windspeed: {
-    color: "blue",
-    min: 0,
-    max: 20,
-  },
-  precipprob: {
-    color: "green",
-    min: 0,
-    max: 100,
-  },
-  humidity: {
-    color: "purple",
-    min: 0,
-    max: 100,
-  },
-};
-
 export function WeatherChart({ hourlyData, field }: WeatherChartProps) {
+  const { registerLimit, getCurrentLimits, defaultLimits } = useCommonAxis();
+
   // Example props (could be pulled in from parent or external data):
   const width = 600;
   const height = 300;
@@ -99,19 +74,24 @@ export function WeatherChart({ hourlyData, field }: WeatherChartProps) {
   const minTime = Math.min(...times);
   const maxTime = Math.max(...times);
 
-  // Get the default visual settings for this field
-  const defaultVisual = defaultChartVisuals[field];
+  // Calculate the actual min/max from data with padding
+  const paddingFactor = 0.1; // 10% padding
+  const valueRange = Math.max(...values) - Math.min(...values);
+  const padding = valueRange * paddingFactor;
+
+  const dataMinValue = Math.min(...values) - padding;
+  const dataMaxValue = Math.max(...values) + padding;
+
+  // Register the current data's limits
+  useEffect(() => {
+    registerLimit(field, dataMinValue, dataMaxValue);
+  }, [field, dataMinValue, dataMaxValue, registerLimit]);
+
+  // Get the current global limits
+  const { min: minValue, max: maxValue } = getCurrentLimits(field);
 
   // Use default color for the chart
-  const chartColor = defaultVisual.color;
-
-  // Calculate the actual min/max from data
-  const dataMinValue = Math.min(...values);
-  const dataMaxValue = Math.max(...values);
-
-  // Use the more extreme value between default and actual data
-  const minValue = Math.min(dataMinValue, defaultVisual.min);
-  const maxValue = Math.max(dataMaxValue, defaultVisual.max);
+  const chartColor = defaultLimits[field].color;
 
   // Compute chart dimension for the central region:
   const chartHeight = height - topGutterHeight - bottomGutterHeight;
