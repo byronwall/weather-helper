@@ -94,34 +94,94 @@ export function WeatherChart({ hourlyData, field }: WeatherChartProps) {
   const gapThreshold = 70 * 60 * 1000;
   const segments: Array<{ points: DataPoint[]; isInRange: boolean }> = [];
   let currentSegment: DataPoint[] = [];
-  let currentInRange = false;
+
+  const isInRange = (value: number): boolean => {
+    if (!fieldPreferences) return false;
+    const aboveMin = !fieldPreferences.min || value >= fieldPreferences.min;
+    const belowMax = !fieldPreferences.max || value <= fieldPreferences.max;
+    return aboveMin && belowMax;
+  };
+
+  const findCrossingPoint = (
+    p1: DataPoint,
+    p2: DataPoint
+  ): DataPoint | null => {
+    if (!fieldPreferences) return null;
+
+    const p1InRange = isInRange(p1.value);
+    const p2InRange = isInRange(p2.value);
+
+    if (p1InRange === p2InRange) return null;
+
+    // Check which boundary we're crossing
+    let boundaryValue: number | undefined;
+    if (p1.value < p2.value) {
+      boundaryValue = fieldPreferences.min;
+    } else {
+      boundaryValue = fieldPreferences.max;
+    }
+
+    if (boundaryValue === undefined) return null;
+
+    // Linear interpolation
+    const t = (boundaryValue - p1.value) / (p2.value - p1.value);
+    if (t < 0 || t > 1) return null; // Sanity check for interpolation
+
+    return {
+      time: p1.time + t * (p2.time - p1.time),
+      value: boundaryValue,
+    };
+  };
 
   for (let i = 0; i < data.length; i++) {
     const point = data[i];
-    const isPointInRange = fieldPreferences
-      ? (!fieldPreferences.min || point.value >= fieldPreferences.min) &&
-        (!fieldPreferences.max || point.value <= fieldPreferences.max)
-      : false;
+    const prevPoint = i > 0 ? data[i - 1] : null;
 
+    // Handle time gaps
+    if (prevPoint && point.time - prevPoint.time > gapThreshold) {
+      if (currentSegment.length > 0) {
+        segments.push({
+          points: currentSegment,
+          isInRange: isInRange(currentSegment[currentSegment.length - 1].value),
+        });
+        currentSegment = [];
+      }
+      continue;
+    }
+
+    // If this is the first point or we're starting a new segment
     if (currentSegment.length === 0) {
-      currentSegment = [point];
-      currentInRange = isPointInRange;
-    } else {
-      const prevPoint = currentSegment[currentSegment.length - 1];
-      const delta = point.time - prevPoint.time;
+      currentSegment.push(point);
+      continue;
+    }
 
-      if (delta > gapThreshold || isPointInRange !== currentInRange) {
-        segments.push({ points: currentSegment, isInRange: currentInRange });
-        currentSegment = [point];
-        currentInRange = isPointInRange;
+    // Check for boundary crossing
+    if (prevPoint) {
+      const crossingPoint = findCrossingPoint(prevPoint, point);
+
+      if (crossingPoint) {
+        // Add the crossing point to current segment and finish it
+        currentSegment.push(crossingPoint);
+        segments.push({
+          points: currentSegment,
+          isInRange: isInRange(currentSegment[0].value),
+        });
+
+        // Start new segment from the crossing point
+        currentSegment = [crossingPoint, point];
       } else {
+        // No crossing, just add the point
         currentSegment.push(point);
       }
     }
-  }
 
-  if (currentSegment.length > 0) {
-    segments.push({ points: currentSegment, isInRange: currentInRange });
+    // If this is the last point, push the final segment
+    if (i === data.length - 1 && currentSegment.length > 0) {
+      segments.push({
+        points: currentSegment,
+        isInRange: isInRange(currentSegment[0].value),
+      });
+    }
   }
 
   // Generate path d-attribute for each segment
