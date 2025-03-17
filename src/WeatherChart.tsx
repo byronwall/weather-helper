@@ -3,11 +3,7 @@ import { HourReading } from "./types/api";
 import { useCommonAxis } from "./stores/useCommonAxis";
 import { useUserPrefs } from "./stores/userPrefsStore";
 import { useEffect } from "react";
-import {
-  analyzePreferences,
-  getPreferenceKey,
-  isValueInRange,
-} from "./utils/preferenceHelper";
+import { analyzePreferences, getPreferenceKey } from "./utils/preferenceHelper";
 
 interface WeatherChartProps {
   hourlyData: HourReading[];
@@ -90,110 +86,13 @@ export function WeatherChart({ hourlyData, field }: WeatherChartProps) {
     chartHeight -
     ((val - minValue) / (maxValue - minValue)) * chartHeight;
 
-  // Update isInRange function to use helper
-  const isInPreferenceRange = (value: number): boolean => {
-    if (!fieldPreferences) return false;
-    return isValueInRange(value, fieldPreferences);
-  };
-
-  // Update the segments generation to use the analysis results
-  const segments: Array<{ points: DataPoint[]; isInRange: boolean }> = [];
-  let currentSegment: DataPoint[] = [];
-
-  const findCrossingPoint = (
-    p1: DataPoint,
-    p2: DataPoint
-  ): DataPoint | null => {
-    if (!fieldPreferences) return null;
-
-    const p1InRange = isInPreferenceRange(p1.value);
-    const p2InRange = isInPreferenceRange(p2.value);
-
-    if (p1InRange === p2InRange) return null;
-
-    // Check which boundary we're crossing
-    let boundaryValue: number | undefined;
-    if (p1.value < p2.value) {
-      boundaryValue = fieldPreferences.min;
-    } else {
-      boundaryValue = fieldPreferences.max;
-    }
-
-    if (boundaryValue === undefined) return null;
-
-    // Linear interpolation
-    const t = (boundaryValue - p1.value) / (p2.value - p1.value);
-    if (t < 0 || t > 1) return null;
-
-    return {
-      time: p1.time + t * (p2.time - p1.time),
-      value: boundaryValue,
-    };
-  };
-
-  // Split data into segments and determine line thickness based on preferences
-  const gapThreshold = 70 * 60 * 1000;
-
-  for (let i = 0; i < data.length; i++) {
-    const point = data[i];
-    const prevPoint = i > 0 ? data[i - 1] : null;
-
-    // Handle time gaps
-    if (prevPoint && point.time - prevPoint.time > gapThreshold) {
-      if (currentSegment.length > 0) {
-        segments.push({
-          points: currentSegment,
-          isInRange: isInPreferenceRange(
-            currentSegment[currentSegment.length - 1].value
-          ),
-        });
-        currentSegment = [];
-      }
-      continue;
-    }
-
-    // If this is the first point or we're starting a new segment
-    if (currentSegment.length === 0) {
-      currentSegment.push(point);
-      continue;
-    }
-
-    // Check for boundary crossing
-    if (prevPoint) {
-      const crossingPoint = findCrossingPoint(prevPoint, point);
-
-      if (crossingPoint) {
-        // Add the crossing point to current segment and finish it
-        currentSegment.push(crossingPoint);
-        segments.push({
-          points: currentSegment,
-          isInRange: isInPreferenceRange(currentSegment[0].value),
-        });
-
-        // Start new segment from the crossing point
-        currentSegment = [crossingPoint, point];
-      } else {
-        // No crossing, just add the point
-        currentSegment.push(point);
-      }
-    }
-
-    // If this is the last point, push the final segment
-    if (i === data.length - 1 && currentSegment.length > 0) {
-      segments.push({
-        points: currentSegment,
-        isInRange: isInPreferenceRange(currentSegment[0].value),
-      });
-    }
-  }
-
-  // Generate path d-attribute for each segment
-  const generatePathD = (segment: DataPoint[]): string => {
-    if (segment.length === 0) return "";
-    let d = `M ${xScale(segment[0].time)},${yScale(segment[0].value)}`;
-    for (let i = 1; i < segment.length; i++) {
-      const px = xScale(segment[i].time);
-      const py = yScale(segment[i].value);
+  // Generate path d-attribute for the main line
+  const generatePathD = (points: DataPoint[]): string => {
+    if (points.length === 0) return "";
+    let d = `M ${xScale(points[0].time)},${yScale(points[0].value)}`;
+    for (let i = 1; i < points.length; i++) {
+      const px = xScale(points[i].time);
+      const py = yScale(points[i].value);
       d += ` L ${px},${py}`;
     }
     return d;
@@ -398,32 +297,26 @@ export function WeatherChart({ hourlyData, field }: WeatherChartProps) {
         {/* Preference lines */}
         {preferenceLines}
 
-        {/* Render each segment with appropriate thickness */}
-        {segments.map((segment, idx) => {
-          const pathD = generatePathD(segment.points);
-          return (
-            <g key={idx}>
-              <path
-                d={pathD}
-                fill="none"
-                stroke={chartColor}
-                strokeWidth={segment.isInRange ? 3 : 1}
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-              {/* Add points */}
-              {segment.points.map((point, pointIdx) => (
-                <circle
-                  key={pointIdx}
-                  cx={xScale(point.time)}
-                  cy={yScale(point.value)}
-                  r={2}
-                  fill={chartColor}
-                />
-              ))}
-            </g>
-          );
-        })}
+        {/* Main line */}
+        <path
+          d={generatePathD(data)}
+          fill="none"
+          stroke={chartColor}
+          strokeWidth={2}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+
+        {/* Data points */}
+        {data.map((point, idx) => (
+          <circle
+            key={idx}
+            cx={xScale(point.time)}
+            cy={yScale(point.value)}
+            r={2}
+            fill={chartColor}
+          />
+        ))}
 
         {/* Axes */}
         <line

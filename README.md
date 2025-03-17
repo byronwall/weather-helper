@@ -55,4 +55,13 @@ Initial prototype
 
 ## Problems spotted during testing
 
-- Need to get responsive again on the charts (top and bottom )
+- Need to get responsive again on the charts (top and bottom)
+- Get 1 more hour of data rendered if keeping the whole day plots
+- Probably want to interpolate data to 10 minute increments to get a smoother looking chart
+
+## Prototype settings to wire up
+
+- Theme colors - find every color and put it into a color picker
+- Which region to shade - good or bad - make this a toggle
+- The opacity of the shaded region
+- Chart sizes
