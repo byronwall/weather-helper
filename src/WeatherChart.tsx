@@ -5,9 +5,12 @@ import { HourReading } from "./types/api";
 import { WeatherField } from "./types/user";
 import { getPreferenceKey } from "./utils/preferenceHelper";
 
+const CHART_ASPECT_RATIO = 2.5; // width:height ratio (e.g. 2.5:1)
+
 interface WeatherChartProps {
   hourlyData: HourReading[];
   field: WeatherField;
+  width: number; // New prop for width
 }
 
 interface DataPoint {
@@ -23,7 +26,7 @@ function formatTime(timestamp: number): string {
     .replace(" ", "");
 }
 
-export function WeatherChart({ hourlyData, field }: WeatherChartProps) {
+export function WeatherChart({ hourlyData, field, width }: WeatherChartProps) {
   const { registerLimit, getCurrentLimits, defaultLimits } = useCommonAxis();
   const { preferences } = useUserPrefs();
 
@@ -31,14 +34,14 @@ export function WeatherChart({ hourlyData, field }: WeatherChartProps) {
   const preferenceKey = getPreferenceKey(field);
   const fieldPreferences = preferences[preferenceKey];
 
-  // Analyze preferences
+  // Calculate height based on width and aspect ratio
+  const height = Math.round(width / CHART_ASPECT_RATIO);
+  const topGutterHeight = Math.round(height * 0.05); // 5% of height
+  const bottomGutterHeight = Math.round(height * 0.25); // 25% of height
+  const leftGutterWidth = Math.round(width * 0.08); // 8% of width
+  const rightGutterWidth = Math.round(width * 0.03); // 3% of width
 
-  const width = 600;
-  const height = 200;
-  const topGutterHeight = 10;
-  const bottomGutterHeight = 50;
-  const leftGutterWidth = 50;
-  const rightGutterWidth = 20;
+  // Analyze preferences
 
   // Convert hourly data to DataPoints
   const data: DataPoint[] = hourlyData.map((hour) => ({

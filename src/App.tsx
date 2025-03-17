@@ -19,9 +19,9 @@ export function App() {
       <main className="container mx-auto p-4 space-y-4">
         <DateList />
         <UserPreferences />
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="flex flex-wrap gap-4">
           {selectedDates.length === 0 ? (
-            <div className="bg-white rounded shadow p-4 col-span-full">
+            <div className="bg-white rounded shadow p-4 ">
               <p className="text-gray-500 text-center">
                 Select dates above to view weather details
               </p>
@@ -30,11 +30,9 @@ export function App() {
             selectedDates
               .sort((a, b) => a.getTime() - b.getTime())
               .map((date) => (
-                <WeatherCard
-                  key={date.toISOString()}
-                  date={date}
-                  location="46220"
-                />
+                <div key={date.toISOString()} className="w-full">
+                  <WeatherCard date={date} location="46220" />
+                </div>
               ))
           )}
         </div>

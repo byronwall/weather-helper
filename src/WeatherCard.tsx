@@ -20,7 +20,7 @@ export function WeatherCard({ date, location }: WeatherCardProps) {
 
   if (!dayData) {
     return (
-      <div className="bg-white rounded shadow p-4 w-full">
+      <div className="bg-white rounded shadow p-4">
         <p>No weather data available for this date and location.</p>
       </div>
     );
@@ -52,7 +52,7 @@ export function WeatherCard({ date, location }: WeatherCardProps) {
   };
 
   return (
-    <div className="bg-white rounded shadow p-4 w-full">
+    <div className="bg-white rounded shadow p-4">
       {/* Heading */}
       <h2 className="text-xl font-bold mb-2">
         {date.toLocaleDateString("en-US", {
@@ -126,7 +126,7 @@ export function WeatherCard({ date, location }: WeatherCardProps) {
       </div>
 
       {/* Chart Area */}
-      <div className="bg-gray-100 rounded flex items-center justify-center text-sm text-gray-500">
+      <div className="bg-gray-100 rounded w-full">
         <WeatherChartPanel hourlyData={dayData.hours} />
       </div>
     </div>
