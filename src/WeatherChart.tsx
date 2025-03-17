@@ -37,6 +37,7 @@ export function WeatherChart({ hourlyData, field }: WeatherChartProps) {
   const topGutterHeight = 30;
   const bottomGutterHeight = 50; // Increased to accommodate time labels
   const leftGutterWidth = 50; // Added for y-axis labels
+  const rightGutterWidth = 20; // Added for right padding
 
   // Convert hourly data to DataPoints
   const data: DataPoint[] = hourlyData.map((hour) => ({
@@ -95,7 +96,7 @@ export function WeatherChart({ hourlyData, field }: WeatherChartProps) {
 
   // Compute chart dimension for the central region:
   const chartHeight = height - topGutterHeight - bottomGutterHeight;
-  const chartWidth = width - leftGutterWidth;
+  const chartWidth = width - leftGutterWidth - rightGutterWidth;
 
   // 2) Scale functions (simple linear scales):
   const xScale = (t: number): number =>
@@ -181,13 +182,14 @@ export function WeatherChart({ hourlyData, field }: WeatherChartProps) {
   });
 
   // Generate axis ticks and gridlines
-  const numYTicks = 5;
-  const yTicks = Array.from({ length: numYTicks + 1 }, (_, i) => {
-    const value = minValue + (i / numYTicks) * (maxValue - minValue);
+  const { increment } = defaultLimits[field];
+  const numSteps = Math.floor((maxValue - minValue) / increment);
+  const yTicks = Array.from({ length: numSteps + 1 }, (_, i) => {
+    const value = minValue + i * increment;
     return {
       value,
       y: yScale(value),
-      label: Math.round(value) + "°",
+      label: Math.round(value) + (field === "temp" ? "°" : ""),
     };
   });
 
@@ -215,7 +217,7 @@ export function WeatherChart({ hourlyData, field }: WeatherChartProps) {
           key={`grid-y-${i}`}
           x1={leftGutterWidth}
           y1={tick.y}
-          x2={width}
+          x2={width - rightGutterWidth}
           y2={tick.y}
           stroke="#e0e0e0"
           strokeWidth={1}
@@ -270,7 +272,7 @@ export function WeatherChart({ hourlyData, field }: WeatherChartProps) {
       <line
         x1={leftGutterWidth}
         y1={topGutterHeight + chartHeight}
-        x2={width}
+        x2={width - rightGutterWidth}
         y2={topGutterHeight + chartHeight}
         stroke="#666"
         strokeWidth={1}
