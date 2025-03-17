@@ -3,6 +3,7 @@ import {
   formatWeatherSummary,
   getWeatherIcon,
 } from "./utils/weatherFormatters";
+import { WeatherChart } from "./WeatherChart";
 
 interface WeatherCardProps {
   date: Date;
@@ -23,8 +24,6 @@ export function WeatherCard({
 }: WeatherCardProps) {
   const { getWeatherForDate } = useWeatherStore();
   const dayData = getWeatherForDate(location, date);
-
-  console.log(dayData);
 
   if (!dayData) {
     return (
@@ -64,8 +63,7 @@ export function WeatherCard({
 
       {/* Placeholder Chart Area */}
       <div className="bg-gray-100 h-48 rounded flex items-center justify-center text-sm text-gray-500">
-        {/* This is where you'd integrate your chart library */}
-        <span>Chart Placeholder (e.g., 11:00 - 7:00)</span>
+        <WeatherChart hourlyData={dayData.hours} />
       </div>
 
       {/* Navigation Controls */}
