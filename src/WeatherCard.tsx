@@ -78,48 +78,55 @@ export function WeatherCard({
         <h3 className="text-sm font-semibold text-gray-700 mb-2">
           Preference Analysis:
         </h3>
-        {preferenceAnalysis.violations.length > 0 ? (
-          <div>
-            <p className="text-sm text-red-600">
-              {Array.from(
-                new Set(preferenceAnalysis.violations.map((v) => v.field))
-              )
-                .map((field) => {
-                  const fieldViolations = preferenceAnalysis.violations.filter(
-                    (v) => v.field === field
-                  );
-                  const worstViolation = fieldViolations.reduce(
-                    (worst, current) => {
-                      const worstDiff = Math.abs(worst.value - worst.limit);
-                      const currentDiff = Math.abs(
-                        current.value - current.limit
+        <div className="space-y-2">
+          {/* Show violations if any exist */}
+          {preferenceAnalysis.violations.length > 0 && (
+            <div>
+              <p className="text-sm text-red-600">
+                {Array.from(
+                  new Set(preferenceAnalysis.violations.map((v) => v.field))
+                )
+                  .map((field) => {
+                    const fieldViolations =
+                      preferenceAnalysis.violations.filter(
+                        (v) => v.field === field
                       );
-                      return currentDiff > worstDiff ? current : worst;
-                    }
-                  );
-                  return `${getFieldDisplayName(field)} ${
-                    worstViolation.value
-                  } (${worstViolation.type === "min" ? "min" : "max"}: ${
-                    worstViolation.limit
-                  })`;
-                })
-                .join(" • ")}
-            </p>
-          </div>
-        ) : preferenceAnalysis.validTimeRanges.length > 0 ? (
-          <div className="space-y-1">
-            <p className="text-sm text-green-600">
-              All preferences met during these times:
-            </p>
-            {preferenceAnalysis.validTimeRanges.map((range, idx) => (
-              <div key={idx} className="text-sm text-green-600">
-                {range}
-              </div>
-            ))}
-          </div>
-        ) : (
-          <p className="text-sm text-gray-600">No viable time slots found.</p>
-        )}
+                    const worstViolation = fieldViolations.reduce(
+                      (worst, current) => {
+                        const worstDiff = Math.abs(worst.value - worst.limit);
+                        const currentDiff = Math.abs(
+                          current.value - current.limit
+                        );
+                        return currentDiff > worstDiff ? current : worst;
+                      }
+                    );
+                    return `${getFieldDisplayName(field)} ${
+                      worstViolation.value
+                    } (${worstViolation.type === "min" ? "min" : "max"}: ${
+                      worstViolation.limit
+                    })`;
+                  })
+                  .join(" • ")}
+              </p>
+            </div>
+          )}
+
+          {/* Show valid time ranges if any exist */}
+          {preferenceAnalysis.validTimeRanges.length > 0 ? (
+            <div className="space-y-1">
+              <p className="text-sm text-green-600">
+                All preferences met during these times:
+              </p>
+              {preferenceAnalysis.validTimeRanges.map((range, idx) => (
+                <div key={idx} className="text-sm text-green-600">
+                  {range}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-gray-600">No viable time slots found.</p>
+          )}
+        </div>
       </div>
 
       {/* Weather summary row */}

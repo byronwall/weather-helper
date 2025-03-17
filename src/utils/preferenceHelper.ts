@@ -173,44 +173,12 @@ export function analyzeCombinedPreferences(
   preferences: Partial<WeatherPreference>,
   minimumDurationHours: number = 1
 ): CombinedPreferenceAnalysis {
+  console.log("Starting analysis with preferences:", preferences);
+  console.log("Minimum duration (hours):", minimumDurationHours);
+
   const violations: PreferenceViolation[] = [];
   const minimumDurationMs = minimumDurationHours * 60 * 60 * 1000;
-
-  // Check for violations first
-  for (const field of WEATHER_FIELDS) {
-    const prefKey = getPreferenceKey(field);
-    const prefs = preferences[prefKey];
-
-    if (prefs) {
-      for (const hour of hourlyData) {
-        const value = hour[field as keyof HourReading] as number;
-        if (prefs.min !== undefined && value < prefs.min) {
-          violations.push({
-            field,
-            value,
-            limit: prefs.min,
-            type: "min",
-          });
-        }
-        if (prefs.max !== undefined && value > prefs.max) {
-          violations.push({
-            field,
-            value,
-            limit: prefs.max,
-            type: "max",
-          });
-        }
-      }
-    }
-  }
-
-  // If there are violations, return early
-  if (violations.length > 0) {
-    return {
-      validTimeRanges: [],
-      violations,
-    };
-  }
+  console.log("Minimum duration (ms):", minimumDurationMs);
 
   // Find times when all preferences are met
   const validSegments: PreferenceSegment[] = [];
@@ -219,49 +187,122 @@ export function analyzeCombinedPreferences(
   for (let i = 0; i < hourlyData.length; i++) {
     const hour = hourlyData[i];
     const time = hour.datetimeEpoch * 1000;
+    const timeStr = new Date(time).toLocaleTimeString();
+    console.log("\n--- Processing hour:", timeStr, "---");
+    console.log("Current weather values:", {
+      temp: hour.temp,
+      windspeed: hour.windspeed,
+      precipprob: hour.precipprob,
+      humidity: hour.humidity,
+    });
 
     // Check if all preferences are met for this hour
+    const hourViolations: PreferenceViolation[] = [];
     const allPreferencesMet = WEATHER_FIELDS.every((field: WeatherField) => {
       const prefKey = getPreferenceKey(field);
       const prefs = preferences[prefKey];
-      return (
-        !prefs ||
-        isValueInRange(hour[field as keyof HourReading] as number, prefs)
-      );
+
+      if (!prefs) {
+        console.log(`No preferences set for ${field}`);
+        return true;
+      }
+
+      const value = hour[field as keyof HourReading] as number;
+      console.log(`Checking ${field}: value=${value}, prefs:`, prefs);
+
+      if (prefs.min !== undefined && value < prefs.min) {
+        console.log(`${field} below min: ${value} < ${prefs.min}`);
+        hourViolations.push({
+          field,
+          value,
+          limit: prefs.min,
+          type: "min",
+        });
+        return false;
+      }
+      if (prefs.max !== undefined && value > prefs.max) {
+        console.log(`${field} above max: ${value} > ${prefs.max}`);
+        hourViolations.push({
+          field,
+          value,
+          limit: prefs.max,
+          type: "max",
+        });
+        return false;
+      }
+      console.log(`${field} within range`);
+      return true;
     });
 
+    // Add any violations found in this hour
+    if (hourViolations.length > 0) {
+      console.log("Violations in this hour:", hourViolations);
+      violations.push(...hourViolations);
+    }
+
+    console.log("All preferences met for this hour?", allPreferencesMet);
+    console.log("Current segment:", currentSegment);
+
     if (!currentSegment && allPreferencesMet) {
+      console.log("Starting new valid segment");
       currentSegment = {
         startTime: time,
         endTime: time,
         isInRange: true,
       };
     } else if (currentSegment && !allPreferencesMet) {
+      console.log("Ending current segment due to violation");
       currentSegment.endTime = time;
-      if (
-        currentSegment.endTime - currentSegment.startTime >=
-        minimumDurationMs
-      ) {
+      const duration = currentSegment.endTime - currentSegment.startTime;
+      console.log("Segment duration:", duration, "ms");
+      if (duration >= minimumDurationMs) {
+        console.log("Adding valid segment:", {
+          start: new Date(currentSegment.startTime).toLocaleTimeString(),
+          end: new Date(currentSegment.endTime).toLocaleTimeString(),
+          duration: duration / (60 * 60 * 1000),
+        });
         validSegments.push(currentSegment);
+      } else {
+        console.log("Segment too short, discarding");
       }
       currentSegment = null;
     } else if (currentSegment && allPreferencesMet) {
+      console.log("Extending current valid segment");
       currentSegment.endTime = time;
     }
   }
 
   // Handle the last segment
-  if (
-    currentSegment &&
-    currentSegment.endTime - currentSegment.startTime >= minimumDurationMs
-  ) {
-    validSegments.push(currentSegment);
+  if (currentSegment) {
+    console.log("\n--- Processing final segment ---");
+    const duration = currentSegment.endTime - currentSegment.startTime;
+    console.log("Final segment duration:", duration, "ms");
+    if (duration >= minimumDurationMs) {
+      console.log("Adding final valid segment:", {
+        start: new Date(currentSegment.startTime).toLocaleTimeString(),
+        end: new Date(currentSegment.endTime).toLocaleTimeString(),
+        duration: duration / (60 * 60 * 1000),
+      });
+      validSegments.push(currentSegment);
+    } else {
+      console.log("Final segment too short, discarding");
+    }
   }
 
-  return {
+  const result = {
     validTimeRanges: validSegments.map((segment) =>
       formatTimeRange(segment.startTime, segment.endTime)
     ),
-    violations: [],
+    violations,
   };
+
+  console.log("\n=== Final Analysis ===");
+  console.log("Valid time ranges:", result.validTimeRanges);
+  console.log("Total violations:", violations.length);
+  console.log(
+    "Unique violation fields:",
+    Array.from(new Set(violations.map((v) => v.field))).join(", ")
+  );
+
+  return result;
 }
