@@ -11,20 +11,9 @@ import { WeatherField } from "./types/user";
 interface WeatherCardProps {
   date: Date;
   location: string;
-  onPrevious?: () => void;
-  onNext?: () => void;
-  prevLabel?: string;
-  nextLabel?: string;
 }
 
-export function WeatherCard({
-  date,
-  location,
-  onPrevious,
-  onNext,
-  prevLabel = "Previous Friday",
-  nextLabel = "Next Friday",
-}: WeatherCardProps) {
+export function WeatherCard({ date, location }: WeatherCardProps) {
   const { getWeatherForDate } = useWeatherStore();
   const { preferences, minimumDuration } = useUserPrefs();
   const dayData = getWeatherForDate(location, date);
@@ -140,29 +129,6 @@ export function WeatherCard({
       <div className="bg-gray-100 rounded flex items-center justify-center text-sm text-gray-500">
         <WeatherChartPanel hourlyData={dayData.hours} />
       </div>
-
-      {/* Navigation Controls */}
-      {(onPrevious || onNext) && (
-        <div className="flex justify-between items-center mt-4 text-sm">
-          {onPrevious ? (
-            <button
-              onClick={onPrevious}
-              className="text-blue-500 hover:underline"
-            >
-              &laquo; {prevLabel}
-            </button>
-          ) : (
-            <div></div>
-          )}
-          {onNext ? (
-            <button onClick={onNext} className="text-blue-500 hover:underline">
-              {nextLabel} &raquo;
-            </button>
-          ) : (
-            <div></div>
-          )}
-        </div>
-      )}
     </div>
   );
 }

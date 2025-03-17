@@ -6,39 +6,12 @@ import { UserPreferences } from "./components/UserPreferences";
 import { DateList } from "./components/DateList";
 
 export function App() {
-  const { loadSampleData } = useWeatherStore();
-  const [currentDate, setCurrentDate] = React.useState(() => {
-    const now = new Date();
-    // Find the next Friday
-    const daysUntilFriday = (5 - now.getDay() + 7) % 7;
-    const nextFriday = new Date(now);
-    nextFriday.setDate(now.getDate() + daysUntilFriday);
-    return nextFriday;
-  });
+  const { loadSampleData, selectedDates } = useWeatherStore();
 
   // Load sample data when component mounts
   React.useEffect(() => {
     loadSampleData().catch(console.error);
   }, [loadSampleData]);
-
-  const handlePreviousFriday = () => {
-    setCurrentDate((prev) => {
-      const newDate = new Date(prev);
-      newDate.setDate(prev.getDate() - 7);
-      return newDate;
-    });
-  };
-
-  const handleNextFriday = () => {
-    setCurrentDate((prev) => {
-      const newDate = new Date(prev);
-      newDate.setDate(prev.getDate() + 7);
-      return newDate;
-    });
-  };
-
-  const nextFridayDate = new Date(currentDate);
-  nextFridayDate.setDate(currentDate.getDate() + 7);
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -46,21 +19,24 @@ export function App() {
       <main className="container mx-auto p-4 space-y-4">
         <DateList />
         <UserPreferences />
-        <div className="flex flex-row gap-4">
-          <WeatherCard
-            date={currentDate}
-            location="46220"
-            onPrevious={handlePreviousFriday}
-            onNext={handleNextFriday}
-            nextLabel={`Next Friday (${nextFridayDate.toLocaleDateString()})`}
-          />
-          {/* Next Friday Card */}
-          <WeatherCard
-            date={nextFridayDate}
-            location="46220"
-            onPrevious={handlePreviousFriday}
-            onNext={handleNextFriday}
-          />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {selectedDates.length === 0 ? (
+            <div className="bg-white rounded shadow p-4 col-span-full">
+              <p className="text-gray-500 text-center">
+                Select dates above to view weather details
+              </p>
+            </div>
+          ) : (
+            selectedDates
+              .sort((a, b) => a.getTime() - b.getTime())
+              .map((date) => (
+                <WeatherCard
+                  key={date.toISOString()}
+                  date={date}
+                  location="46220"
+                />
+              ))
+          )}
         </div>
       </main>
     </div>
