@@ -22,18 +22,21 @@ export interface WeatherPreference {
 
 interface UserPrefsState {
   preferences: WeatherPreference;
+  minimumDuration: number; // in hours
   setPreference: (
     metric: keyof WeatherPreference,
     min?: number,
     max?: number
   ) => void;
   clearPreference: (metric: keyof WeatherPreference) => void;
+  setMinimumDuration: (hours: number) => void;
 }
 
 export const useUserPrefs = create<UserPrefsState>()(
   persist(
     (set) => ({
       preferences: {},
+      minimumDuration: 1, // default 1 hour
       setPreference: (metric, min, max) =>
         set((state) => ({
           preferences: {
@@ -47,6 +50,10 @@ export const useUserPrefs = create<UserPrefsState>()(
           delete newPreferences[metric];
           return { preferences: newPreferences };
         }),
+      setMinimumDuration: (hours) =>
+        set(() => ({
+          minimumDuration: hours,
+        })),
     }),
     {
       name: "weather-preferences",

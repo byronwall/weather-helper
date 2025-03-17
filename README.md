@@ -65,3 +65,4 @@ Initial prototype
 - Which region to shade - good or bad - make this a toggle
 - The opacity of the shaded region
 - Chart sizes
+- Add a small calendar strip that shows the available weather data - allow user to click and get charts for those days - default picks based on the day choice.

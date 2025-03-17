@@ -4,6 +4,9 @@ import {
   getWeatherIcon,
 } from "./utils/weatherFormatters";
 import { WeatherChartPanel } from "./WeatherChartPanel";
+import { useUserPrefs } from "./stores/userPrefsStore";
+import { analyzeCombinedPreferences } from "./utils/preferenceHelper";
+import { WeatherField } from "./types/user";
 
 interface WeatherCardProps {
   date: Date;
@@ -23,6 +26,7 @@ export function WeatherCard({
   nextLabel = "Next Friday",
 }: WeatherCardProps) {
   const { getWeatherForDate } = useWeatherStore();
+  const { preferences, minimumDuration } = useUserPrefs();
   const dayData = getWeatherForDate(location, date);
 
   if (!dayData) {
@@ -33,8 +37,30 @@ export function WeatherCard({
     );
   }
 
+  // Analyze all preferences together
+  const preferenceAnalysis = analyzeCombinedPreferences(
+    dayData.hours,
+    preferences,
+    minimumDuration
+  );
+
   const weatherSummary = formatWeatherSummary(dayData);
   const icon = getWeatherIcon(dayData);
+
+  const getFieldDisplayName = (field: WeatherField): string => {
+    switch (field) {
+      case "temp":
+        return "Temperature";
+      case "windspeed":
+        return "Wind Speed";
+      case "precipprob":
+        return "Precipitation";
+      case "humidity":
+        return "Humidity";
+      default:
+        return field;
+    }
+  };
 
   return (
     <div className="bg-white rounded shadow p-4 w-full">
@@ -46,6 +72,55 @@ export function WeatherCard({
           day: "numeric",
         })}
       </h2>
+
+      {/* Preference Summary */}
+      <div className="mb-4 p-3 bg-gray-50 rounded-lg">
+        <h3 className="text-sm font-semibold text-gray-700 mb-2">
+          Preference Analysis:
+        </h3>
+        {preferenceAnalysis.violations.length > 0 ? (
+          <div>
+            <p className="text-sm text-red-600">
+              {Array.from(
+                new Set(preferenceAnalysis.violations.map((v) => v.field))
+              )
+                .map((field) => {
+                  const fieldViolations = preferenceAnalysis.violations.filter(
+                    (v) => v.field === field
+                  );
+                  const worstViolation = fieldViolations.reduce(
+                    (worst, current) => {
+                      const worstDiff = Math.abs(worst.value - worst.limit);
+                      const currentDiff = Math.abs(
+                        current.value - current.limit
+                      );
+                      return currentDiff > worstDiff ? current : worst;
+                    }
+                  );
+                  return `${getFieldDisplayName(field)} ${
+                    worstViolation.value
+                  } (${worstViolation.type === "min" ? "min" : "max"}: ${
+                    worstViolation.limit
+                  })`;
+                })
+                .join(" • ")}
+            </p>
+          </div>
+        ) : preferenceAnalysis.validTimeRanges.length > 0 ? (
+          <div className="space-y-1">
+            <p className="text-sm text-green-600">
+              All preferences met during these times:
+            </p>
+            {preferenceAnalysis.validTimeRanges.map((range, idx) => (
+              <div key={idx} className="text-sm text-green-600">
+                {range}
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-sm text-gray-600">No viable time slots found.</p>
+        )}
+      </div>
 
       {/* Weather summary row */}
       <div className="flex items-center space-x-4 mb-4">
@@ -61,7 +136,7 @@ export function WeatherCard({
         </div>
       </div>
 
-      {/* Placeholder Chart Area */}
+      {/* Chart Area */}
       <div className="bg-gray-100 rounded flex items-center justify-center text-sm text-gray-500">
         <WeatherChartPanel hourlyData={dayData.hours} />
       </div>
