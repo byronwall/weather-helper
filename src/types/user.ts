@@ -1,6 +1,6 @@
 import { DayReading } from "./api";
 
-type WeatherField = keyof Pick<
+export type WeatherField = keyof Pick<
   DayReading,
   "temp" | "windspeed" | "precipprob" | "humidity"
 >;

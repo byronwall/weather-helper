@@ -1,16 +1,9 @@
-interface HourlyData {
-  datetime: string;
-  datetimeEpoch: number;
-  temp: number;
-  feelslike: number;
-  humidity: number;
-  precip: number;
-  windspeed: number;
-  conditions: string;
-}
+import { WeatherField } from "./types/user";
+import { HourReading } from "./types/api";
 
 interface WeatherChartProps {
-  hourlyData: HourlyData[];
+  hourlyData: HourReading[];
+  field: WeatherField;
 }
 
 interface DataPoint {
@@ -33,7 +26,36 @@ function formatTime(timestamp: number): string {
     .replace(" ", "");
 }
 
-export function WeatherChart({ hourlyData }: WeatherChartProps) {
+type ChartVisual = {
+  color: string;
+  min: number;
+  max: number;
+};
+
+const defaultChartVisuals: Record<WeatherField, ChartVisual> = {
+  temp: {
+    color: "red",
+    min: 40,
+    max: 100,
+  },
+  windspeed: {
+    color: "blue",
+    min: 0,
+    max: 20,
+  },
+  precipprob: {
+    color: "green",
+    min: 0,
+    max: 100,
+  },
+  humidity: {
+    color: "purple",
+    min: 0,
+    max: 100,
+  },
+};
+
+export function WeatherChart({ hourlyData, field }: WeatherChartProps) {
   // Example props (could be pulled in from parent or external data):
   const width = 600;
   const height = 300;
@@ -44,7 +66,7 @@ export function WeatherChart({ hourlyData }: WeatherChartProps) {
   // Convert hourly data to DataPoints
   const data: DataPoint[] = hourlyData.map((hour) => ({
     time: hour.datetimeEpoch * 1000, // convert seconds to milliseconds
-    value: hour.temp,
+    value: hour[field],
   }));
 
   console.log("test data", {
@@ -77,8 +99,19 @@ export function WeatherChart({ hourlyData }: WeatherChartProps) {
   const minTime = Math.min(...times);
   const maxTime = Math.max(...times);
 
-  const minValue = Math.min(...values);
-  const maxValue = Math.max(...values);
+  // Get the default visual settings for this field
+  const defaultVisual = defaultChartVisuals[field];
+
+  // Use default color for the chart
+  const chartColor = defaultVisual.color;
+
+  // Calculate the actual min/max from data
+  const dataMinValue = Math.min(...values);
+  const dataMaxValue = Math.max(...values);
+
+  // Use the more extreme value between default and actual data
+  const minValue = Math.min(dataMinValue, defaultVisual.min);
+  const maxValue = Math.max(dataMaxValue, defaultVisual.max);
 
   // Compute chart dimension for the central region:
   const chartHeight = height - topGutterHeight - bottomGutterHeight;
@@ -228,7 +261,7 @@ export function WeatherChart({ hourlyData }: WeatherChartProps) {
         const pathD = generatePathD(segment);
         return (
           <g key={idx}>
-            <path d={pathD} fill="none" stroke="red" strokeWidth={2} />
+            <path d={pathD} fill="none" stroke={chartColor} strokeWidth={2} />
             {/* Add circles for each data point */}
             {segment.map((point, pointIdx) => (
               <circle
@@ -236,7 +269,7 @@ export function WeatherChart({ hourlyData }: WeatherChartProps) {
                 cx={xScale(point.time)}
                 cy={yScale(point.value)}
                 r={3}
-                fill="red"
+                fill={chartColor}
               />
             ))}
           </g>

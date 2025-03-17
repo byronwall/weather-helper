@@ -3,7 +3,7 @@ import {
   formatWeatherSummary,
   getWeatherIcon,
 } from "./utils/weatherFormatters";
-import { WeatherChart } from "./WeatherChart";
+import { WeatherChartPanel } from "./WeatherChartPanel";
 
 interface WeatherCardProps {
   date: Date;
@@ -62,8 +62,8 @@ export function WeatherCard({
       </div>
 
       {/* Placeholder Chart Area */}
-      <div className="bg-gray-100 h-48 rounded flex items-center justify-center text-sm text-gray-500">
-        <WeatherChart hourlyData={dayData.hours} />
+      <div className="bg-gray-100 rounded flex items-center justify-center text-sm text-gray-500">
+        <WeatherChartPanel hourlyData={dayData.hours} />
       </div>
 
       {/* Navigation Controls */}
