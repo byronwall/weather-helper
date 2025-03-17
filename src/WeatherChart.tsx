@@ -219,17 +219,58 @@ export function WeatherChart({ hourlyData, field }: WeatherChartProps) {
         />
       );
 
-      // Add bottom gutter region for values below min
-      gutterRegions.push(
-        <rect
-          key="min-gutter"
-          x={leftGutterWidth}
-          y={y}
-          width={chartWidth}
-          height={chartHeight + topGutterHeight - y}
-          fill={`${chartColor}20`}
-        />
-      );
+      // Create paths for out-of-range regions
+      const belowMinPoints: DataPoint[] = [];
+      data.forEach((point, index) => {
+        if (point.value < fieldPreferences.min!) {
+          if (index > 0 && data[index - 1].value >= fieldPreferences.min!) {
+            // Add the crossing point
+            const t =
+              (fieldPreferences.min! - data[index - 1].value) /
+              (point.value - data[index - 1].value);
+            const crossingTime =
+              data[index - 1].time + t * (point.time - data[index - 1].time);
+            belowMinPoints.push({
+              time: crossingTime,
+              value: fieldPreferences.min!,
+            });
+          }
+          belowMinPoints.push(point);
+          if (
+            index < data.length - 1 &&
+            data[index + 1].value >= fieldPreferences.min!
+          ) {
+            // Add the crossing point
+            const t =
+              (fieldPreferences.min! - point.value) /
+              (data[index + 1].value - point.value);
+            const crossingTime =
+              point.time + t * (data[index + 1].time - point.time);
+            belowMinPoints.push({
+              time: crossingTime,
+              value: fieldPreferences.min!,
+            });
+          }
+        }
+      });
+
+      // Create shaded region for below min
+      if (belowMinPoints.length > 0) {
+        let d = "";
+        belowMinPoints.forEach((point, index) => {
+          if (index === 0) {
+            d += `M ${xScale(point.time)} ${yScale(fieldPreferences.min!)} `;
+          }
+          d += `L ${xScale(point.time)} ${yScale(point.value)} `;
+          if (index === belowMinPoints.length - 1) {
+            d += `L ${xScale(point.time)} ${yScale(fieldPreferences.min!)} Z`;
+          }
+        });
+
+        gutterRegions.push(
+          <path key="min-gutter" d={d} fill={chartColor} fillOpacity={0.2} />
+        );
+      }
     }
 
     if (fieldPreferences.max !== undefined) {
@@ -247,17 +288,58 @@ export function WeatherChart({ hourlyData, field }: WeatherChartProps) {
         />
       );
 
-      // Add top gutter region for values above max
-      gutterRegions.push(
-        <rect
-          key="max-gutter"
-          x={leftGutterWidth}
-          y={topGutterHeight}
-          width={chartWidth}
-          height={y - topGutterHeight}
-          fill={`${chartColor}20`}
-        />
-      );
+      // Create paths for out-of-range regions
+      const aboveMaxPoints: DataPoint[] = [];
+      data.forEach((point, index) => {
+        if (point.value > fieldPreferences.max!) {
+          if (index > 0 && data[index - 1].value <= fieldPreferences.max!) {
+            // Add the crossing point
+            const t =
+              (fieldPreferences.max! - data[index - 1].value) /
+              (point.value - data[index - 1].value);
+            const crossingTime =
+              data[index - 1].time + t * (point.time - data[index - 1].time);
+            aboveMaxPoints.push({
+              time: crossingTime,
+              value: fieldPreferences.max!,
+            });
+          }
+          aboveMaxPoints.push(point);
+          if (
+            index < data.length - 1 &&
+            data[index + 1].value <= fieldPreferences.max!
+          ) {
+            // Add the crossing point
+            const t =
+              (fieldPreferences.max! - point.value) /
+              (data[index + 1].value - point.value);
+            const crossingTime =
+              point.time + t * (data[index + 1].time - point.time);
+            aboveMaxPoints.push({
+              time: crossingTime,
+              value: fieldPreferences.max!,
+            });
+          }
+        }
+      });
+
+      // Create shaded region for above max
+      if (aboveMaxPoints.length > 0) {
+        let d = "";
+        aboveMaxPoints.forEach((point, index) => {
+          if (index === 0) {
+            d += `M ${xScale(point.time)} ${yScale(fieldPreferences.max!)} `;
+          }
+          d += `L ${xScale(point.time)} ${yScale(point.value)} `;
+          if (index === aboveMaxPoints.length - 1) {
+            d += `L ${xScale(point.time)} ${yScale(fieldPreferences.max!)} Z`;
+          }
+        });
+
+        gutterRegions.push(
+          <path key="max-gutter" d={d} fill={chartColor} fillOpacity={0.2} />
+        );
+      }
     }
   }
 
