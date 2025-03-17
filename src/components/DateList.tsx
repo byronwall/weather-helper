@@ -37,34 +37,42 @@ export function DateList() {
   );
 
   return (
-    <div className="w-64 bg-white rounded-lg shadow overflow-hidden">
-      <div className="p-4 bg-gray-50 border-b border-gray-200 space-y-4">
-        <h2 className="text-lg font-semibold text-gray-800">Available Dates</h2>
-        <DayPreference />
-      </div>
-      <div className="max-h-96 overflow-y-auto">
-        {!selectedLocation ? (
-          <div className="p-4 text-gray-500 text-center">Loading dates...</div>
-        ) : sortedDates.length === 0 ? (
-          <div className="p-4 text-gray-500 text-center">
-            No dates available
-            {preferredDayOfWeek !== null && " for the selected day"}
+    <div className="bg-white rounded-lg shadow">
+      <div className="p-4 space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-semibold text-gray-800">
+            Available Dates
+          </h2>
+          <DayPreference />
+        </div>
+        <div className="overflow-x-auto pb-2">
+          <div className="flex gap-1 min-w-min">
+            {!selectedLocation ? (
+              <div className="p-4 text-gray-500 text-center">
+                Loading dates...
+              </div>
+            ) : sortedDates.length === 0 ? (
+              <div className="p-4 text-gray-500 text-center">
+                No dates available
+                {preferredDayOfWeek !== null && " for the selected day"}
+              </div>
+            ) : (
+              sortedDates.map((date) => (
+                <DateItem
+                  key={date.toISOString()}
+                  date={date}
+                  isSelected={selectedDates.some(
+                    (d) =>
+                      d.toISOString().split("T")[0] ===
+                      date.toISOString().split("T")[0]
+                  )}
+                  isAvailable={true}
+                  onClick={() => toggleDateSelection(date)}
+                />
+              ))
+            )}
           </div>
-        ) : (
-          sortedDates.map((date) => (
-            <DateItem
-              key={date.toISOString()}
-              date={date}
-              isSelected={selectedDates.some(
-                (d) =>
-                  d.toISOString().split("T")[0] ===
-                  date.toISOString().split("T")[0]
-              )}
-              isAvailable={true}
-              onClick={() => toggleDateSelection(date)}
-            />
-          ))
-        )}
+        </div>
       </div>
     </div>
   );

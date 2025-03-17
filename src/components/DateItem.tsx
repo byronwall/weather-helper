@@ -16,46 +16,29 @@ export function DateItem({
       onClick={onClick}
       disabled={!isAvailable}
       className={`
-        w-full px-4 py-3 text-left transition-all duration-200 ease-in-out
+        flex flex-col items-center justify-center p-1 w-16 h-24
+        transition-all duration-200 ease-in-out rounded-lg
         ${
           isAvailable
-            ? "hover:bg-blue-50 cursor-pointer hover:shadow-sm"
+            ? "hover:bg-blue-50 cursor-pointer"
             : "opacity-50 cursor-not-allowed"
         }
-        ${isSelected ? "bg-blue-100 hover:bg-blue-200 shadow-sm" : "bg-white"}
-        border-b border-gray-200 relative group
+        ${isSelected ? "bg-blue-100 hover:bg-blue-200" : "bg-white"}
+        relative group
       `}
     >
-      <div className="flex justify-between items-center">
-        <div>
-          <div className="font-medium text-gray-900 group-hover:text-blue-600 transition-colors">
-            {date.toLocaleDateString(undefined, { weekday: "long" })}
-          </div>
-          <div className="text-sm text-gray-600">
-            {date.toLocaleDateString(undefined, {
-              month: "short",
-              day: "numeric",
-              year: "numeric",
-            })}
-          </div>
-        </div>
-        {isSelected && (
-          <div className="text-blue-600 opacity-0 group-hover:opacity-100 transition-opacity">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-            >
-              <path
-                fillRule="evenodd"
-                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                clipRule="evenodd"
-              />
-            </svg>
-          </div>
-        )}
+      <div className="text-xs font-medium text-gray-600">
+        {date.toLocaleDateString(undefined, { weekday: "short" })}
       </div>
+      <div className="text-2xl font-bold text-gray-900">{date.getDate()}</div>
+      <div className="text-xs text-gray-600">
+        {date.toLocaleDateString(undefined, { month: "short" })}
+      </div>
+      {isSelected && (
+        <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2">
+          <div className="w-1.5 h-1.5 bg-blue-600 rounded-full"></div>
+        </div>
+      )}
     </button>
   );
 }
