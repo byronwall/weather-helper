@@ -52,3 +52,7 @@ Initial prototype
 ![](docs/initial_ui_wide.png)
 
 ![](docs/initial_ui_mobile.png)
+
+## Problems spotted during testing
+
+- Need to get responsive again on the charts (top and bottom )
