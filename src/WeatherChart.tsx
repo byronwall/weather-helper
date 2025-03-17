@@ -34,7 +34,7 @@ export function WeatherChart({ hourlyData, field }: WeatherChartProps) {
   // Analyze preferences
 
   const width = 600;
-  const height = 150;
+  const height = 200;
   const topGutterHeight = 10;
   const bottomGutterHeight = 50;
   const leftGutterWidth = 50;
@@ -243,9 +243,19 @@ export function WeatherChart({ hourlyData, field }: WeatherChartProps) {
 
   // Generate axis ticks and gridlines
   const { increment } = defaultLimits[field];
-  const numSteps = Math.floor((maxValue - minValue) / increment);
+  const MIN_PIXELS_BETWEEN_LABELS = 15; // Minimum pixels between labels
+
+  // Calculate how many increments would fit with the base increment
+  const baseNumSteps = Math.floor((maxValue - minValue) / increment);
+  const pixelsPerStep = chartHeight / baseNumSteps;
+
+  // Calculate multiplier needed to meet minimum pixel threshold
+  const multiplier = Math.ceil(MIN_PIXELS_BETWEEN_LABELS / pixelsPerStep);
+  const adjustedIncrement = increment * multiplier;
+
+  const numSteps = Math.floor((maxValue - minValue) / adjustedIncrement);
   const yTicks = Array.from({ length: numSteps + 1 }, (_, i) => {
-    const value = minValue + i * increment;
+    const value = minValue + i * adjustedIncrement;
     return {
       value,
       y: yScale(value),
@@ -253,7 +263,11 @@ export function WeatherChart({ hourlyData, field }: WeatherChartProps) {
     };
   });
 
-  const numXTicks = 6;
+  const MIN_PIXELS_BETWEEN_X_LABELS = 80;
+  const numXTicks = Math.min(
+    6,
+    Math.floor(chartWidth / MIN_PIXELS_BETWEEN_X_LABELS)
+  );
   const xTicks = Array.from({ length: numXTicks + 1 }, (_, i) => {
     const time = minTime + (i / numXTicks) * (maxTime - minTime);
     return {
