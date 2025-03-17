@@ -271,15 +271,6 @@ export function WeatherChart({ hourlyData, field }: WeatherChartProps) {
 
   return (
     <div className="space-y-2">
-      {fieldPreferences &&
-        preferenceAnalysis.summary.validRanges.length > 0 && (
-          <div className="text-sm text-gray-600 mb-2">
-            <div>Good conditions during:</div>
-            <div className="font-medium">
-              {preferenceAnalysis.summary.validRanges.join(", ")}
-            </div>
-          </div>
-        )}
       <svg width={width} height={height} className="bg-white rounded-lg">
         {/* Background gridlines */}
         {yTicks.map((tick, i) => (
