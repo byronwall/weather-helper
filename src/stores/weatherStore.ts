@@ -68,6 +68,7 @@ interface WeatherStore extends WeatherStoreState {
   loadSampleData: () => Promise<void>;
   toggleDateSelection: (date: Date) => void;
   clearSelectedDates: () => void;
+  setSelectedDates: (dates: Date[]) => void;
 
   // Queries
   getWeatherForTimeRange: (
@@ -199,6 +200,8 @@ export const useWeatherStore = create<WeatherStore>((set, get) => ({
     }),
 
   clearSelectedDates: () => set({ selectedDates: [] }),
+
+  setSelectedDates: (dates) => set({ selectedDates: dates }),
 
   getWeatherForTimeRange: (location, range) => {
     const state = get();

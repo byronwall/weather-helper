@@ -1,6 +1,7 @@
 import { Popover } from "@headlessui/react";
 import { TimePreference } from "./TimePreference";
 import { useUserPrefs } from "../stores/userPrefsStore";
+import { Clock } from "lucide-react";
 
 function formatTimeRange(startHour: number, endHour: number) {
   const formatHour = (hour: number) => {
@@ -21,7 +22,9 @@ export function TimePreferencePopover() {
   return (
     <Popover className="relative">
       <Popover.Button className="flex items-center space-x-1 text-sm text-gray-700 hover:text-gray-900">
-        <span className="material-icons text-gray-500">schedule</span>
+        <span className="material-icons text-gray-500">
+          <Clock />
+        </span>
         <span>
           {formatTimeRange(timePreference.startHour, timePreference.endHour)}
         </span>

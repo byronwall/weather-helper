@@ -1,9 +1,8 @@
 import * as React from "react";
 import { Header } from "./Header";
 import { WeatherCard } from "./WeatherCard";
-import { useWeatherStore } from "./stores/weatherStore";
 import { UserPreferences } from "./components/UserPreferences";
-import { DateList } from "./components/DateList";
+import { useWeatherStore } from "./stores/weatherStore";
 
 export function App() {
   const { loadSampleData, selectedDates } = useWeatherStore();

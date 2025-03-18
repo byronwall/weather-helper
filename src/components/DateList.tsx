@@ -10,17 +10,10 @@ export function DateList() {
     selectedDates,
     getAvailableDates,
     toggleDateSelection,
-    loadSampleData,
+    setSelectedDates,
   } = useWeatherStore();
 
   const { preferredDayOfWeek, timePreference } = useUserPrefs();
-
-  // Load sample data when component mounts if no data is available
-  useEffect(() => {
-    if (!selectedLocation) {
-      loadSampleData().catch(console.error);
-    }
-  }, [selectedLocation, loadSampleData]);
 
   // Auto-select dates matching preferred day when it changes
   useEffect(() => {
@@ -29,26 +22,19 @@ export function DateList() {
         selectedLocation,
         timePreference
       );
+
+      // Select all dates matching the preferred day
       const matchingDates = availableDates.filter(
         (date) => date.getDay() === preferredDayOfWeek
       );
 
-      // Select all matching dates that aren't already selected
-      matchingDates.forEach((date) => {
-        const isAlreadySelected = selectedDates.some(
-          (d) =>
-            d.toISOString().split("T")[0] === date.toISOString().split("T")[0]
-        );
-        if (!isAlreadySelected) {
-          toggleDateSelection(date);
-        }
-      });
+      // Directly set the matching dates
+      setSelectedDates(matchingDates);
     }
   }, [
     preferredDayOfWeek,
     getAvailableDates,
-    selectedDates,
-    toggleDateSelection,
+    setSelectedDates,
     selectedLocation,
     timePreference,
   ]);
@@ -61,12 +47,9 @@ export function DateList() {
     .slice(0, 14); // Limit to 14 days
 
   return (
-    <div className="bg-white rounded-lg shadow mx-auto">
+    <div className="bg-white rounded-lg shadow w-[440px]">
       <div className="p-4 space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-gray-800">
-            Available Dates
-          </h2>
           <DayPreference />
         </div>
         <div className="pb-2">
