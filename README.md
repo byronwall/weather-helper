@@ -3,12 +3,8 @@
 ## Remaining tasks
 
 - Create a set of docs in the tool
-- Remove the circles
+- Remove the circles?
 - Allow a chart to collapse to a boolean display with the exceptions being emphasized
-- Show the available dates picker in a popup - default to the selected day only
-- Get some visual distinction on the header - separate from body content
-- Put the weather preferences into a popover
-- Get rid of all the console calls.
 
 ## Overview
 
