@@ -26,17 +26,12 @@ const defaultWeatherPreference: WeatherPreference = {
     min: 60,
     max: 80,
   },
-  humidity: {
-    min: 40,
-    max: 60,
-  },
+
   windSpeed: {
-    min: 0,
     max: 10,
   },
   precipitation: {
-    min: 0,
-    max: 0.1,
+    max: 20,
   },
 };
 
