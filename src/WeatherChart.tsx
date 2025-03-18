@@ -176,7 +176,7 @@ export function WeatherChart({
         });
 
         gutterRegions.push(
-          <path key="min-gutter" d={d} fill={chartColor} fillOpacity={0.2} />
+          <path key="min-gutter" d={d} fill={`url(#below-gradient-${field})`} />
         );
       }
     }
@@ -245,7 +245,7 @@ export function WeatherChart({
         });
 
         gutterRegions.push(
-          <path key="max-gutter" d={d} fill={chartColor} fillOpacity={0.2} />
+          <path key="max-gutter" d={d} fill={`url(#above-gradient-${field})`} />
         );
       }
     }
@@ -290,6 +290,31 @@ export function WeatherChart({
   return (
     <div className="space-y-2">
       <svg width={width} height={height} className="bg-white rounded-lg">
+        {/* Gradient definitions */}
+        <defs>
+          <linearGradient
+            id={`below-gradient-${field}`}
+            x1="0"
+            x2="0"
+            y1="0"
+            y2="1"
+          >
+            <stop offset="25%" stopColor={chartColor} stopOpacity="0" />
+            <stop offset="100%" stopColor={chartColor} stopOpacity="0.4" />
+          </linearGradient>
+          <linearGradient
+            id={`above-gradient-${field}`}
+            x1="0"
+            x2="0"
+            y1="0"
+            y2="1"
+          >
+            <stop offset="0%" stopColor={chartColor} stopOpacity="0.4" />
+            <stop offset="25%" stopColor={chartColor} stopOpacity="0.2" />
+            <stop offset="100%" stopColor={chartColor} stopOpacity="0" />
+          </linearGradient>
+        </defs>
+
         {/* Y-axis label */}
         <text
           x={leftAxisLabel - 10}
