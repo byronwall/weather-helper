@@ -19,9 +19,9 @@ interface WeatherMetricCardProps {
 
 function WeatherMetricCard({ label, value }: WeatherMetricCardProps) {
   return (
-    <div className="flex items-baseline justify-between bg-gray-50 px-4 py-2 rounded">
-      <span className="text-gray-600">{label}</span>
-      <span className="font-medium ml-4">{value}</span>
+    <div className="flex items-baseline justify-between bg-gray-50 px-4 py-2 rounded min-w-0">
+      <span className="text-gray-600 truncate mr-2">{label}</span>
+      <span className="font-medium flex-shrink-0">{value}</span>
     </div>
   );
 }
@@ -75,11 +75,11 @@ export function WeatherCard({ date, width }: WeatherCardProps) {
   ];
 
   return (
-    <div className="bg-white rounded-lg shadow p-4">
-      <div className="flex items-center justify-between mb-4">
-        <div>
-          <h2 className="text-xl font-bold">{selectedLocation}</h2>
-          <p className="text-gray-600">
+    <div className="bg-white rounded-lg shadow p-4 w-full overflow-hidden min-w-0 max-w-full">
+      <div className="flex items-center justify-between mb-4 min-w-0 gap-2">
+        <div className="min-w-0 flex-1 overflow-hidden">
+          <h2 className="text-xl font-bold truncate">{selectedLocation}</h2>
+          <p className="text-gray-600 truncate">
             {date.toLocaleDateString("en-US", {
               weekday: "long",
               month: "long",
@@ -87,12 +87,12 @@ export function WeatherCard({ date, width }: WeatherCardProps) {
             })}
           </p>
         </div>
-        <div className="text-4xl">{icon}</div>
+        <div className="text-4xl flex-shrink-0">{icon}</div>
       </div>
 
       <div className="mb-4">
-        <div className="@container">
-          <div className="grid grid-cols-1 @sm:grid-cols-2 @lg:grid-cols-3 gap-4">
+        <div className="min-w-0 max-w-full">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
             {metrics.map((metric) => (
               <WeatherMetricCard
                 key={metric.label}
@@ -104,13 +104,13 @@ export function WeatherCard({ date, width }: WeatherCardProps) {
         </div>
       </div>
 
-      <div className="mb-4">
+      <div className="mb-4 min-w-0">
         <div className="space-y-2">
           {analysis.validTimeRanges.length > 0 ? (
             <>
-              <p className=" font-medium flex ">
-                Good conditions:
-                <div className="flex flex-wrap gap-2">
+              <p className="font-medium flex flex-wrap min-w-0">
+                <span className="flex-shrink-0">Good conditions:</span>
+                <div className="flex flex-wrap gap-2 w-full">
                   {analysis.validTimeRanges.map((range, index) => (
                     <span
                       key={index}
@@ -130,9 +130,9 @@ export function WeatherCard({ date, width }: WeatherCardProps) {
 
           {analysis.violations.length > 0 && (
             <>
-              <p className="font-medium flex">
-                Preference violations:
-                <div className="flex flex-wrap gap-2 ml-2">
+              <p className="font-medium flex flex-wrap min-w-0">
+                <span className="flex-shrink-0">Preference violations:</span>
+                <div className="flex flex-wrap gap-2 w-full">
                   {Array.from(
                     new Set(
                       analysis.violations.map(
@@ -158,7 +158,10 @@ export function WeatherCard({ date, width }: WeatherCardProps) {
       </div>
 
       <div>
-        <WeatherChartPanel weatherData={weatherData} width={width} />
+        <WeatherChartPanel
+          weatherData={weatherData}
+          width={Math.min(width, window.innerWidth - 64)}
+        />
       </div>
     </div>
   );

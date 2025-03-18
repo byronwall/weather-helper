@@ -47,29 +47,40 @@ export function App() {
           .weather-grid {
             display: grid;
             gap: 1rem;
-            grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
-            max-width: min(1800px, 90vw);
+            width: 100%;
+            max-width: 1800px;
             margin: 0 auto;
+            padding: 0 1rem;
           }
 
-          @media (min-width: 641px) {
+          @media (max-width: 767px) {
             .weather-grid {
-              grid-template-columns: ${
-                selectedDates.length === 2 ? "repeat(2, 1fr)" : "repeat(3, 1fr)"
-              };
+              grid-template-columns: minmax(0, 1fr);
             }
           }
 
-          @media (max-width: 640px) {
+          @media (min-width: 768px) {
             .weather-grid {
-              grid-template-columns: 1fr;
+              grid-template-columns: repeat(${Math.min(
+                selectedDates.length,
+                2
+              )}, minmax(0, 1fr));
+            }
+          }
+
+          @media (min-width: 1400px) {
+            .weather-grid {
+              grid-template-columns: repeat(${Math.min(
+                selectedDates.length,
+                3
+              )}, minmax(0, 1fr));
             }
           }
         `}
       </style>
       <div className="min-h-screen bg-gray-100">
         <Header />
-        <main className="container mx-auto p-4 space-y-4">
+        <main className="w-full p-4 space-y-4">
           {!selectedLocation && (
             <div className="bg-white rounded shadow p-4 w-fit mx-auto">
               <LocationInput />
