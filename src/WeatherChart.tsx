@@ -5,7 +5,7 @@ import { HourReading } from "./types/api";
 import { WeatherField } from "./types/user";
 import { getPreferenceKey } from "./utils/preferenceHelper";
 
-const CHART_ASPECT_RATIO = 2.5; // width:height ratio (e.g. 2.5:1)
+const CHART_ASPECT_RATIO = 1.8; // width:height ratio (e.g. 2.5:1)
 
 interface WeatherChartProps {
   hourlyData: HourReading[];
@@ -48,7 +48,7 @@ export function WeatherChart({
   const bottomGutterHeight = 40;
   const leftAxisLabel = 30;
   const leftGutterWidth = leftAxisLabel + 30;
-  const rightGutterWidth = 10;
+  const rightGutterWidth = 5;
 
   // Convert hourly data to DataPoints
   const data: DataPoint[] = hourlyData.map((hour) => ({
@@ -292,9 +292,9 @@ export function WeatherChart({
       <svg width={width} height={height} className="bg-white rounded-lg">
         {/* Y-axis label */}
         <text
-          x={leftAxisLabel / 2}
+          x={leftAxisLabel - 10}
           y={height / 2}
-          transform={`rotate(-90 ${leftAxisLabel / 2} ${height / 2})`}
+          transform={`rotate(-90 ${leftAxisLabel - 10} ${height / 2})`}
           textAnchor="middle"
           fontSize="14px"
           fill="#666"
@@ -410,7 +410,9 @@ export function WeatherChart({
             <text
               x={tick.x}
               y={height - 15}
-              textAnchor="middle"
+              textAnchor={
+                i === 0 ? "start" : i === numXTicks ? "end" : "middle"
+              }
               fontSize="12px"
               fill="#666"
             >
