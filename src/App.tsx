@@ -85,11 +85,7 @@ export function App() {
                 .sort((a, b) => a.getTime() - b.getTime())
                 .map((date) => (
                   <div key={date.toISOString()}>
-                    <WeatherCard
-                      date={date}
-                      location="46220"
-                      width={chartWidth}
-                    />
+                    <WeatherCard date={date} width={chartWidth} />
                   </div>
                 ))
             )}

@@ -45,7 +45,7 @@ interface WeatherStore extends WeatherStoreState {
   setSelectedLocation: (location: string) => void;
   setSelectedTimeRange: (range: TimeRange) => void;
   setBufferHours: (hours: number) => void;
-  loadSampleData: () => Promise<void>;
+  loadSampleData: (datasetKey?: string) => Promise<void>;
   loadWeatherData: (location: string) => Promise<void>;
   toggleDateSelection: (date: Date) => void;
   clearSelectedDates: () => void;
@@ -53,7 +53,7 @@ interface WeatherStore extends WeatherStoreState {
 
   // Queries
   getWeatherForTimeRange: (
-    location: string,
+    location: string | null,
     range: TimeRange
   ) => WeatherMetric[];
   getAvailableTimeRange: (location: string) => TimeRange | null;
@@ -109,15 +109,25 @@ export const useWeatherStore = create<WeatherStore>((set, get) => ({
 
   setSelectedTimeRange: (range) => set({ selectedTimeRange: range }),
 
-  loadSampleData: async () => {
+  loadSampleData: async (datasetKey?: string) => {
     try {
       console.log("Loading sample weather data...");
-      const response = await fetch("/46220_IN_home.json");
+      const dataset = datasetKey
+        ? sampleDataSets.find((d) => d.location === datasetKey)
+        : sampleDataSets[0];
+
+      if (!dataset) {
+        throw new Error("Invalid dataset key");
+      }
+
+      const response = await fetch(dataset.data);
       const data = await response.json();
 
       const store = get();
-      store.setWeatherData("46220", data);
-      store.setSelectedLocation("46220");
+      // Extract ZIP code from location if it exists, otherwise use full location
+      const locationKey = dataset.location.split(" ")[0];
+      store.setWeatherData(locationKey, data);
+      store.setSelectedLocation(locationKey);
     } catch (error) {
       console.error("Failed to load sample weather data:", error);
       throw error;
@@ -158,6 +168,11 @@ export const useWeatherStore = create<WeatherStore>((set, get) => ({
 
   getWeatherForTimeRange: (location, range) => {
     const state = get();
+
+    if (!location) {
+      return [];
+    }
+
     const locationData = state.weatherByLocation[location];
     if (!locationData) {
       return [];

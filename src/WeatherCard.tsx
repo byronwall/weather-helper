@@ -9,11 +9,11 @@ import { analyzeCombinedPreferences } from "./utils/preferenceHelper";
 
 interface WeatherCardProps {
   date: Date;
-  location: string;
   width: number;
 }
 
-export function WeatherCard({ date, location, width }: WeatherCardProps) {
+export function WeatherCard({ date, width }: WeatherCardProps) {
+  const selectedLocation = useWeatherStore((s) => s.selectedLocation);
   const { getWeatherForTimeRange } = useWeatherStore();
   const { preferences, timePreference, minimumDuration } = useUserPrefs();
 
@@ -28,7 +28,7 @@ export function WeatherCard({ date, location, width }: WeatherCardProps) {
     end: Math.floor(end.getTime() / 1000),
   };
 
-  const weatherData = getWeatherForTimeRange(location, timeRange);
+  const weatherData = getWeatherForTimeRange(selectedLocation, timeRange);
 
   if (!weatherData || weatherData.length === 0) {
     return (
@@ -52,9 +52,15 @@ export function WeatherCard({ date, location, width }: WeatherCardProps) {
 
   // Format time range
   const formatHour = (hour: number) => {
-    if (hour === 0) return "12 AM";
-    if (hour < 12) return `${hour} AM`;
-    if (hour === 12) return "12 PM";
+    if (hour === 0) {
+      return "12 AM";
+    }
+    if (hour < 12) {
+      return `${hour} AM`;
+    }
+    if (hour === 12) {
+      return "12 PM";
+    }
     return `${hour - 12} PM`;
   };
 
@@ -66,7 +72,7 @@ export function WeatherCard({ date, location, width }: WeatherCardProps) {
     <div className="bg-white rounded-lg shadow p-4">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h2 className="text-xl font-bold">{location}</h2>
+          <h2 className="text-xl font-bold">{selectedLocation}</h2>
           <p className="text-gray-600">
             {date.toLocaleDateString("en-US", {
               weekday: "long",
