@@ -1,17 +1,16 @@
-import * as React from "react";
-import { useWeatherStore } from "../stores/weatherStore";
-import { sampleDataSets } from "../stores/weatherStore";
+import { useState, FormEvent } from "react";
 import { useUserPrefs } from "../stores/userPrefsStore";
+import { sampleDataSets, useWeatherStore } from "../stores/weatherStore";
 
 export function LocationInput() {
   const { setSelectedLocation, loadWeatherData, loadSampleData } =
     useWeatherStore();
   const { preferredDayOfWeek, timePreference } = useUserPrefs();
-  const [location, setLocation] = React.useState("");
-  const [isLoading, setIsLoading] = React.useState(false);
-  const [error, setError] = React.useState<string | null>(null);
+  const [location, setLocation] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (!location.trim()) {
       return;
