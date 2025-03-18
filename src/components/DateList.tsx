@@ -15,7 +15,6 @@ export function DateList() {
 
   const { preferredDayOfWeek, timePreference } = useUserPrefs();
 
-  // Auto-select dates matching preferred day when it changes
   useEffect(() => {
     selectDatesForPreferredDay(preferredDayOfWeek, timePreference);
   }, [preferredDayOfWeek, timePreference, selectDatesForPreferredDay]);

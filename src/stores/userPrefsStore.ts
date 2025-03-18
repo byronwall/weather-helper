@@ -45,9 +45,9 @@ interface UserPrefsState {
 }
 
 const DEFAULT_TIME_PREFERENCE: TimePreference = {
-  startHour: 9, // 9 AM
-  endHour: 17, // 5 PM
-  preset: "custom",
+  startHour: 12, // 12 PM
+  endHour: 18, // 6 PM
+  preset: "afternoon",
 };
 
 export const useUserPrefs = create<UserPrefsState>()(
@@ -55,7 +55,7 @@ export const useUserPrefs = create<UserPrefsState>()(
     (set, get) => ({
       preferences: {},
       minimumDuration: 1, // default 1 hour
-      preferredDayOfWeek: null, // default no preference
+      preferredDayOfWeek: 5, // default to Friday
       timePreference: DEFAULT_TIME_PREFERENCE,
       setPreference: (metric, min, max) =>
         set((state) => ({

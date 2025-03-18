@@ -1,21 +1,14 @@
 import { useEffect, useRef, useState } from "react";
 import { Header } from "./Header";
 import { WeatherCard } from "./WeatherCard";
-import { useUserPrefs } from "./stores/userPrefsStore";
+import { LocationInput } from "./components/LocationInput";
 import { useWeatherStore } from "./stores/weatherStore";
 
 export function App() {
-  const { loadSampleData, selectedDates } = useWeatherStore();
-  const { preferredDayOfWeek, timePreference } = useUserPrefs();
+  const { selectedDates, selectedLocation } = useWeatherStore();
+
   const gridRef = useRef<HTMLDivElement>(null);
   const [chartWidth, setChartWidth] = useState(0);
-
-  // Load sample data when component mounts
-  useEffect(() => {
-    loadSampleData(undefined, timePreference, preferredDayOfWeek).catch(
-      console.error
-    );
-  }, [loadSampleData, timePreference, preferredDayOfWeek]);
 
   // Setup resize observer for the grid
   useEffect(() => {
@@ -77,22 +70,21 @@ export function App() {
       <div className="min-h-screen bg-gray-100">
         <Header />
         <main className="container mx-auto p-4 space-y-4">
+          {!selectedLocation && (
+            <div className="bg-white rounded shadow p-4 max-w-md mx-auto">
+              <LocationInput />
+            </div>
+          )}
+
           <div className="weather-grid" ref={gridRef}>
-            {selectedDates.length === 0 ? (
-              <div className="bg-white rounded shadow p-4">
-                <p className="text-gray-500 text-center">
-                  Select dates above to view weather details
-                </p>
-              </div>
-            ) : (
+            {selectedDates &&
               selectedDates
                 .sort((a, b) => a.getTime() - b.getTime())
                 .map((date) => (
                   <div key={date.toISOString()}>
                     <WeatherCard date={date} width={chartWidth} />
                   </div>
-                ))
-            )}
+                ))}
           </div>
         </main>
       </div>
