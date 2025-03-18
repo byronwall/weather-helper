@@ -20,6 +20,26 @@ export interface WeatherPreference {
   };
 }
 
+const defaultWeatherPreference: WeatherPreference = {
+  // just a nice day in the Midwest
+  temperature: {
+    min: 60,
+    max: 80,
+  },
+  humidity: {
+    min: 40,
+    max: 60,
+  },
+  windSpeed: {
+    min: 0,
+    max: 10,
+  },
+  precipitation: {
+    min: 0,
+    max: 0.1,
+  },
+};
+
 export interface TimePreference {
   startHour: number; // 0-23
   endHour: number; // 0-23
@@ -53,7 +73,7 @@ const DEFAULT_TIME_PREFERENCE: TimePreference = {
 export const useUserPrefs = create<UserPrefsState>()(
   persist(
     (set, get) => ({
-      preferences: {},
+      preferences: defaultWeatherPreference,
       minimumDuration: 1, // default 1 hour
       preferredDayOfWeek: 5, // default to Friday
       timePreference: DEFAULT_TIME_PREFERENCE,
