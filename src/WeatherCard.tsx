@@ -19,7 +19,7 @@ interface WeatherMetricCardProps {
 
 function WeatherMetricCard({ label, value }: WeatherMetricCardProps) {
   return (
-    <div className="flex items-baseline justify-between bg-gray-50 px-4 py-2 rounded min-w-0">
+    <div className="flex items-baseline justify-between bg-gray-50 px-3 py-1.5 rounded min-w-0 w-[180px]">
       <span className="text-gray-600 truncate mr-2">{label}</span>
       <span className="font-medium flex-shrink-0">{value}</span>
     </div>
@@ -92,7 +92,7 @@ export function WeatherCard({ date, width }: WeatherCardProps) {
 
       <div className="mb-4">
         <div className="min-w-0 max-w-full">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+          <div className="flex flex-wrap gap-2">
             {metrics.map((metric) => (
               <WeatherMetricCard
                 key={metric.label}
