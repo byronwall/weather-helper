@@ -1,10 +1,12 @@
 import * as React from "react";
 import { useWeatherStore } from "../stores/weatherStore";
 import { sampleDataSets } from "../stores/weatherStore";
+import { useUserPrefs } from "../stores/userPrefsStore";
 
 export function LocationInput() {
   const { setSelectedLocation, loadWeatherData, loadSampleData } =
     useWeatherStore();
+  const { preferredDayOfWeek, timePreference } = useUserPrefs();
   const [location, setLocation] = React.useState("");
   const [isLoading, setIsLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
@@ -19,7 +21,11 @@ export function LocationInput() {
     setError(null);
 
     try {
-      await loadWeatherData(location.trim());
+      await loadWeatherData(
+        location.trim(),
+        timePreference,
+        preferredDayOfWeek
+      );
       setSelectedLocation(location.trim());
       setLocation(""); // Clear input after successful submission
     } catch (err) {
@@ -34,7 +40,7 @@ export function LocationInput() {
     setIsLoading(true);
     setError(null);
     try {
-      await loadSampleData(datasetKey);
+      await loadSampleData(datasetKey, timePreference, preferredDayOfWeek);
     } catch (err) {
       setError("Failed to load sample data. Please try again.");
       console.error("Error loading sample data:", err);

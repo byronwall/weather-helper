@@ -47,11 +47,23 @@ interface WeatherStore extends WeatherStoreState {
   setSelectedLocation: (location: string) => void;
   setSelectedTimeRange: (range: TimeRange) => void;
   setBufferHours: (hours: number) => void;
-  loadSampleData: (datasetKey?: string) => Promise<void>;
-  loadWeatherData: (location: string) => Promise<void>;
+  loadSampleData: (
+    datasetKey?: string,
+    timePreference?: PreferredTime,
+    preferredDayOfWeek?: number | null
+  ) => Promise<void>;
+  loadWeatherData: (
+    location: string,
+    timePreference: PreferredTime,
+    preferredDayOfWeek: number | null
+  ) => Promise<void>;
   toggleDateSelection: (date: Date) => void;
   clearSelectedDates: () => void;
   setSelectedDates: (dates: Date[]) => void;
+  selectDatesForPreferredDay: (
+    preferredDayOfWeek: number | null,
+    timePreference: PreferredTime
+  ) => void;
 
   // Queries
   getWeatherForTimeRange: (
@@ -111,7 +123,11 @@ export const useWeatherStore = create<WeatherStore>((set, get) => ({
 
   setSelectedTimeRange: (range) => set({ selectedTimeRange: range }),
 
-  loadSampleData: async (datasetKey?: string) => {
+  loadSampleData: async (
+    datasetKey?: string,
+    timePreference?: PreferredTime,
+    preferredDayOfWeek?: number | null
+  ) => {
     try {
       console.log("Loading sample weather data...");
       const dataset = datasetKey
@@ -130,13 +146,22 @@ export const useWeatherStore = create<WeatherStore>((set, get) => ({
       const locationKey = dataset.location.split(" ")[0];
       store.setWeatherData(locationKey, data);
       store.setSelectedLocation(locationKey);
+
+      // If time preference and day preference are provided, select matching dates
+      if (timePreference && preferredDayOfWeek !== undefined) {
+        store.selectDatesForPreferredDay(preferredDayOfWeek, timePreference);
+      }
     } catch (error) {
       console.error("Failed to load sample weather data:", error);
       throw error;
     }
   },
 
-  loadWeatherData: async (location) => {
+  loadWeatherData: async (
+    location: string,
+    timePreference: PreferredTime,
+    preferredDayOfWeek: number | null
+  ) => {
     try {
       const key = "SY8JLD9XBA3653FFPY73QDPU6"; // This will be updated later
       const response = await fetch(
@@ -149,6 +174,9 @@ export const useWeatherStore = create<WeatherStore>((set, get) => ({
       const store = get();
       store.setWeatherData(location, data);
       store.setSelectedLocation(location);
+
+      // Select matching dates based on preferences
+      store.selectDatesForPreferredDay(preferredDayOfWeek, timePreference);
     } catch (error) {
       console.error("Failed to load weather data:", error);
       throw error;
@@ -170,6 +198,26 @@ export const useWeatherStore = create<WeatherStore>((set, get) => ({
   clearSelectedDates: () => set({ selectedDates: [] }),
 
   setSelectedDates: (dates) => set({ selectedDates: dates }),
+
+  selectDatesForPreferredDay: (
+    preferredDayOfWeek: number | null,
+    timePreference: PreferredTime
+  ) => {
+    const state = get();
+    if (preferredDayOfWeek === null || !state.selectedLocation) {
+      return;
+    }
+
+    const availableDates = state.getAvailableDates(
+      state.selectedLocation,
+      timePreference
+    );
+    const matchingDates = availableDates.filter(
+      (date) => date.getDay() === preferredDayOfWeek
+    );
+
+    state.setSelectedDates(matchingDates);
+  },
 
   getWeatherForTimeRange: (location, range) => {
     const state = get();

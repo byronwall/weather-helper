@@ -10,34 +10,15 @@ export function DateList() {
     selectedDates,
     getAvailableDates,
     toggleDateSelection,
-    setSelectedDates,
+    selectDatesForPreferredDay,
   } = useWeatherStore();
 
   const { preferredDayOfWeek, timePreference } = useUserPrefs();
 
   // Auto-select dates matching preferred day when it changes
   useEffect(() => {
-    if (preferredDayOfWeek !== null) {
-      const availableDates = getAvailableDates(
-        selectedLocation,
-        timePreference
-      );
-
-      // Select all dates matching the preferred day
-      const matchingDates = availableDates.filter(
-        (date) => date.getDay() === preferredDayOfWeek
-      );
-
-      // Directly set the matching dates
-      setSelectedDates(matchingDates);
-    }
-  }, [
-    preferredDayOfWeek,
-    getAvailableDates,
-    setSelectedDates,
-    selectedLocation,
-    timePreference,
-  ]);
+    selectDatesForPreferredDay(preferredDayOfWeek, timePreference);
+  }, [preferredDayOfWeek, timePreference, selectDatesForPreferredDay]);
 
   // Get available dates and sort them
   const availableDates = getAvailableDates(selectedLocation, timePreference);

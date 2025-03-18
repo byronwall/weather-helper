@@ -2,16 +2,20 @@ import * as React from "react";
 import { Header } from "./Header";
 import { WeatherCard } from "./WeatherCard";
 import { useWeatherStore } from "./stores/weatherStore";
+import { useUserPrefs } from "./stores/userPrefsStore";
 
 export function App() {
   const { loadSampleData, selectedDates } = useWeatherStore();
+  const { preferredDayOfWeek, timePreference } = useUserPrefs();
   const gridRef = React.useRef<HTMLDivElement>(null);
   const [chartWidth, setChartWidth] = React.useState(0);
 
   // Load sample data when component mounts
   React.useEffect(() => {
-    loadSampleData().catch(console.error);
-  }, [loadSampleData]);
+    loadSampleData(undefined, timePreference, preferredDayOfWeek).catch(
+      console.error
+    );
+  }, [loadSampleData, timePreference, preferredDayOfWeek]);
 
   // Setup resize observer for the grid
   React.useEffect(() => {
