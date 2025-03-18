@@ -1,7 +1,6 @@
 import * as React from "react";
 import { Header } from "./Header";
 import { WeatherCard } from "./WeatherCard";
-import { UserPreferences } from "./components/UserPreferences";
 import { useWeatherStore } from "./stores/weatherStore";
 
 export function App() {
@@ -74,7 +73,6 @@ export function App() {
       <div className="min-h-screen bg-gray-100">
         <Header />
         <main className="container mx-auto p-4 space-y-4">
-          <UserPreferences />
           <div className="weather-grid" ref={gridRef}>
             {selectedDates.length === 0 ? (
               <div className="bg-white rounded shadow p-4">
