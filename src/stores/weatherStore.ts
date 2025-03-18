@@ -5,56 +5,36 @@ import {
   WeatherStoreState,
   TimeRange,
 } from "./weatherTypes";
-
-interface WeatherApiResponse {
-  days: {
-    datetime: string;
-    datetimeEpoch: number;
-    hours: {
-      datetime: string;
-      datetimeEpoch: number;
-      temp: number;
-      feelslike: number;
-      humidity: number;
-      precip: number;
-      precipprob: number;
-      snow: number;
-      snowdepth: number;
-      windspeed: number;
-      windgust: number;
-      winddir: number;
-      pressure: number;
-      visibility: number;
-      cloudcover: number;
-      uvindex: number;
-      conditions: string;
-      icon: string;
-    }[];
-    temp: number;
-    feelslike: number;
-    humidity: number;
-    precip: number;
-    precipprob: number;
-    snow: number;
-    snowdepth: number;
-    windspeed: number;
-    windgust: number;
-    winddir: number;
-    pressure: number;
-    visibility: number;
-    cloudcover: number;
-    uvindex: number;
-    conditions: string;
-    icon: string;
-  }[];
-  resolvedAddress: string;
-  timezone: string;
-}
+import { WeatherApiResponse } from "./WeatherApiResponse";
+import { convertToWeatherMetric } from "./convertToWeatherMetric";
 
 interface PreferredTime {
   startHour: number; // 0-23
   endHour: number; // 0-23
 }
+
+export const sampleDataSets = [
+  {
+    location: "46220 Indy",
+    data: "/46220_IN_home.json",
+  },
+  {
+    location: "96740 Honolulu",
+    data: "/96740_HI_hot.json",
+  },
+  {
+    location: "99701 Anchorage",
+    data: "/99701_AK_cold.json",
+  },
+  {
+    location: "70601 New Orleans",
+    data: "/70601_LA_humid.json",
+  },
+  {
+    location: "Mt Washington",
+    data: "/MtWash_NH_wind.json",
+  },
+];
 
 interface WeatherStore extends WeatherStoreState {
   // State
@@ -66,6 +46,7 @@ interface WeatherStore extends WeatherStoreState {
   setSelectedTimeRange: (range: TimeRange) => void;
   setBufferHours: (hours: number) => void;
   loadSampleData: () => Promise<void>;
+  loadWeatherData: (location: string) => Promise<void>;
   toggleDateSelection: (date: Date) => void;
   clearSelectedDates: () => void;
   setSelectedDates: (dates: Date[]) => void;
@@ -82,50 +63,6 @@ interface WeatherStore extends WeatherStoreState {
   ) => Date[];
   getSelectedDates: () => Date[];
 }
-
-interface WeatherReading {
-  datetime: string;
-  datetimeEpoch?: number;
-  temp: number;
-  feelslike: number;
-  humidity: number;
-  precip: number;
-  precipprob: number;
-  snow: number;
-  snowdepth: number;
-  windspeed: number;
-  windgust: number;
-  winddir: number;
-  pressure: number;
-  visibility: number;
-  cloudcover: number;
-  uvindex: number;
-  conditions: string;
-  icon: string;
-}
-
-const convertToWeatherMetric = (
-  reading: WeatherReading,
-  timestamp: number
-): WeatherMetric => ({
-  timestamp,
-  temp: reading.temp,
-  feelslike: reading.feelslike,
-  humidity: reading.humidity,
-  precip: reading.precip,
-  precipprob: reading.precipprob,
-  snow: reading.snow,
-  snowdepth: reading.snowdepth,
-  windspeed: reading.windspeed,
-  windgust: reading.windgust,
-  winddir: reading.winddir,
-  pressure: reading.pressure,
-  visibility: reading.visibility,
-  cloudcover: reading.cloudcover,
-  uvindex: reading.uvindex,
-  conditions: reading.conditions,
-  icon: reading.icon,
-});
 
 export const useWeatherStore = create<WeatherStore>((set, get) => ({
   weatherByLocation: {},
@@ -183,6 +120,22 @@ export const useWeatherStore = create<WeatherStore>((set, get) => ({
       store.setSelectedLocation("46220");
     } catch (error) {
       console.error("Failed to load sample weather data:", error);
+      throw error;
+    }
+  },
+
+  loadWeatherData: async (location) => {
+    try {
+      const response = await fetch(`/api/weather/${location}`);
+      if (!response.ok) {
+        throw new Error("Failed to fetch weather data");
+      }
+      const data = await response.json();
+      const store = get();
+      store.setWeatherData(location, data);
+      store.setSelectedLocation(location);
+    } catch (error) {
+      console.error("Failed to load weather data:", error);
       throw error;
     }
   },
