@@ -50,24 +50,6 @@ export function WeatherCard({ date, width }: WeatherCardProps) {
   const summary = formatWeatherSummary(weatherData[0]);
   const icon = getWeatherIcon(weatherData[0]);
 
-  // Format time range
-  const formatHour = (hour: number) => {
-    if (hour === 0) {
-      return "12 AM";
-    }
-    if (hour < 12) {
-      return `${hour} AM`;
-    }
-    if (hour === 12) {
-      return "12 PM";
-    }
-    return `${hour - 12} PM`;
-  };
-
-  const timeRangeDisplay = `${formatHour(
-    timePreference.startHour
-  )} - ${formatHour(timePreference.endHour)}`;
-
   return (
     <div className="bg-white rounded-lg shadow p-4">
       <div className="flex items-center justify-between mb-4">
@@ -85,9 +67,6 @@ export function WeatherCard({ date, width }: WeatherCardProps) {
       </div>
 
       <div className="mb-4">
-        <h3 className="text-lg font-medium text-gray-900 mb-2">
-          Weather Summary
-        </h3>
         <div className="grid grid-cols-2 gap-4">
           <div>
             <p className="text-sm text-gray-600">Temperature</p>
@@ -101,29 +80,29 @@ export function WeatherCard({ date, width }: WeatherCardProps) {
       </div>
 
       <div className="mb-4">
-        <h3 className="text-lg font-medium text-gray-900 mb-2">
-          Preference Analysis
-        </h3>
         <div className="space-y-2">
-          <p className="text-sm text-gray-600">
-            Preferred Time Range: {timeRangeDisplay}
-          </p>
           {analysis.validTimeRanges.length > 0 ? (
             <>
-              <p className="text-sm text-green-600 font-medium">
-                Good conditions during:
+              <p className=" font-medium flex ">
+                Good conditions:
+                <div className="flex flex-wrap gap-2">
+                  {analysis.validTimeRanges.map((range, index) => (
+                    <span
+                      key={index}
+                      className="text-sm text-green-600 bg-green-50 px-2 py-1 rounded"
+                    >
+                      {range}
+                    </span>
+                  ))}
+                </div>
               </p>
-              <ul className="list-disc list-inside text-sm text-green-600">
-                {analysis.validTimeRanges.map((range, index) => (
-                  <li key={index}>{range}</li>
-                ))}
-              </ul>
             </>
           ) : (
             <p className="text-sm text-red-600">
               No periods meet all preferences within the time range
             </p>
           )}
+
           {analysis.violations.length > 0 && (
             <>
               <p className="text-sm text-red-600 font-medium mt-2">
@@ -144,9 +123,6 @@ export function WeatherCard({ date, width }: WeatherCardProps) {
       </div>
 
       <div>
-        <h3 className="text-lg font-medium text-gray-900 mb-2">
-          Weather Charts
-        </h3>
         <WeatherChartPanel weatherData={weatherData} width={width} />
       </div>
     </div>

@@ -57,7 +57,7 @@ function isWithinTimeRange(
 ): boolean {
   const date = new Date(timestamp);
   const hour = date.getHours();
-  return hour >= timePreference.startHour && hour < timePreference.endHour;
+  return hour >= timePreference.startHour && hour <= timePreference.endHour;
 }
 
 export function analyzePreferences(
