@@ -48,7 +48,7 @@ export function App() {
             display: grid;
             gap: 1rem;
             grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
-            max-width: 1800px;
+            max-width: min(1800px, 90vw);
             margin: 0 auto;
           }
 
@@ -71,7 +71,7 @@ export function App() {
         <Header />
         <main className="container mx-auto p-4 space-y-4">
           {!selectedLocation && (
-            <div className="bg-white rounded shadow p-4 max-w-md mx-auto">
+            <div className="bg-white rounded shadow p-4 w-fit mx-auto">
               <LocationInput />
             </div>
           )}

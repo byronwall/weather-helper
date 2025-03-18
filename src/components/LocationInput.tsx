@@ -89,7 +89,7 @@ export function LocationInput() {
         <h3 className="text-sm font-medium text-gray-700 mb-2">
           Sample Locations:
         </h3>
-        <div className="flex flex-wrap gap-2 max-w-sm">
+        <div className="flex flex-wrap gap-2 max-w-[400px]">
           {sampleDataSets.map((dataset) => (
             <button
               key={dataset.location}

@@ -67,14 +67,20 @@ export function WeatherCard({ date, width }: WeatherCardProps) {
       </div>
 
       <div className="mb-4">
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <p className="text-sm text-gray-600">Temperature</p>
-            <p className="text-lg font-medium">{summary.temperature}</p>
-          </div>
-          <div>
-            <p className="text-sm text-gray-600">Details</p>
-            <p className="text-lg font-medium">{summary.details}</p>
+        <div className="@container">
+          <div className="grid grid-cols-1 @sm:grid-cols-2 gap-4">
+            <div className="flex items-baseline justify-between bg-gray-50 px-4 py-2 rounded">
+              <span className="text-gray-600">Temperature</span>
+              <span className="text-lg font-medium ml-4">
+                {summary.temperature}
+              </span>
+            </div>
+            <div className="flex items-baseline justify-between bg-gray-50 px-4 py-2 rounded">
+              <span className="text-gray-600">Details</span>
+              <span className="text-lg font-medium ml-4">
+                {summary.details}
+              </span>
+            </div>
           </div>
         </div>
       </div>
@@ -105,18 +111,28 @@ export function WeatherCard({ date, width }: WeatherCardProps) {
 
           {analysis.violations.length > 0 && (
             <>
-              <p className="text-sm text-red-600 font-medium mt-2">
+              <p className="font-medium flex">
                 Preference violations:
+                <div className="flex flex-wrap gap-2 ml-2">
+                  {Array.from(
+                    new Set(
+                      analysis.violations.map(
+                        (v) =>
+                          `${v.field}: ${
+                            v.type === "min" ? "too low" : "too high"
+                          }`
+                      )
+                    )
+                  ).map((violation, index) => (
+                    <span
+                      key={index}
+                      className="text-sm text-red-600 bg-red-50 px-2 py-1 rounded"
+                    >
+                      {violation}
+                    </span>
+                  ))}
+                </div>
               </p>
-              <ul className="list-disc list-inside text-sm text-red-600">
-                {analysis.violations.map((violation, index) => (
-                  <li key={index}>
-                    {violation.field}: {violation.value}
-                    {violation.type === "min" ? " < " : " > "}
-                    {violation.limit}
-                  </li>
-                ))}
-              </ul>
             </>
           )}
         </div>

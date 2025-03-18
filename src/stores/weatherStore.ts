@@ -145,7 +145,7 @@ export const useWeatherStore = create<WeatherStore>((set, get) => ({
 
       const store = get();
       // Extract ZIP code from location if it exists, otherwise use full location
-      const locationKey = dataset.location.split(" ")[0];
+      const locationKey = dataset.location;
       store.setWeatherData(locationKey, data);
       store.setSelectedLocation(locationKey);
 
