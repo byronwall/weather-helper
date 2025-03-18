@@ -19,7 +19,9 @@ export function TimePreference() {
 
   const handleCustomTimeChange = (type: "start" | "end", value: string) => {
     const hour = parseInt(value, 10);
-    if (isNaN(hour) || hour < 0 || hour > 23) return;
+    if (isNaN(hour) || hour < 0 || hour > 23) {
+      return;
+    }
 
     if (type === "start") {
       setCustomTimeRange(hour, timePreference.endHour);

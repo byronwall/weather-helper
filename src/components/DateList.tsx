@@ -56,12 +56,12 @@ export function DateList() {
   // Get available dates and sort them
   const availableDates = getAvailableDates(selectedLocation, timePreference);
 
-  const sortedDates = [...availableDates].sort(
-    (a, b) => a.getTime() - b.getTime()
-  );
+  const sortedDates = [...availableDates]
+    .sort((a, b) => a.getTime() - b.getTime())
+    .slice(0, 14); // Limit to 14 days
 
   return (
-    <div className="bg-white rounded-lg shadow w-fit mx-auto">
+    <div className="bg-white rounded-lg shadow mx-auto">
       <div className="p-4 space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-semibold text-gray-800">
@@ -69,8 +69,8 @@ export function DateList() {
           </h2>
           <DayPreference />
         </div>
-        <div className="overflow-x-auto pb-2">
-          <div className="flex gap-1 min-w-min">
+        <div className="pb-2">
+          <div className="grid grid-cols-7 gap-1">
             {!selectedLocation ? (
               <div className="p-4 text-gray-500 text-center">
                 Loading dates...

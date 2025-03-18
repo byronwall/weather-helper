@@ -75,7 +75,10 @@ interface WeatherStore extends WeatherStoreState {
     range: TimeRange
   ) => WeatherMetric[];
   getAvailableTimeRange: (location: string) => TimeRange | null;
-  getAvailableDates: (location: string, preferredTime: PreferredTime) => Date[];
+  getAvailableDates: (
+    location: string | null,
+    preferredTime: PreferredTime
+  ) => Date[];
   getSelectedDates: () => Date[];
 }
 
@@ -200,7 +203,9 @@ export const useWeatherStore = create<WeatherStore>((set, get) => ({
   getWeatherForTimeRange: (location, range) => {
     const state = get();
     const locationData = state.weatherByLocation[location];
-    if (!locationData) return [];
+    if (!locationData) {
+      return [];
+    }
 
     const bufferSeconds = state.bufferHours * 3600; // Convert hours to seconds
     return locationData.metrics.filter(
@@ -213,7 +218,9 @@ export const useWeatherStore = create<WeatherStore>((set, get) => ({
   getAvailableTimeRange: (location) => {
     const state = get();
     const locationData = state.weatherByLocation[location];
-    if (!locationData || locationData.metrics.length === 0) return null;
+    if (!locationData || locationData.metrics.length === 0) {
+      return null;
+    }
 
     const timestamps = locationData.metrics.map((m) => m.timestamp);
     return {
@@ -224,8 +231,15 @@ export const useWeatherStore = create<WeatherStore>((set, get) => ({
 
   getAvailableDates: (location, preferredTime) => {
     const state = get();
+
+    if (!location) {
+      return [];
+    }
+
     const timeRange = state.getAvailableTimeRange(location);
-    if (!timeRange) return [];
+    if (!timeRange) {
+      return [];
+    }
 
     const availableDates: Date[] = [];
     const startDate = new Date(timeRange.start * 1000);

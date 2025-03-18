@@ -24,6 +24,7 @@ export default tseslint.config(
         { allowConstantExport: true },
       ],
       "no-console": "warn",
+      curly: "warn",
     },
   }
 );

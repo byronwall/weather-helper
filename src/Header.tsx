@@ -1,5 +1,6 @@
 import { useWeatherStore } from "./stores/weatherStore";
 import { TimePreferencePopover } from "./components/TimePreferencePopover";
+import { DatePreferencePopover } from "./components/DatePreferencePopover";
 
 export function Header() {
   const { selectedLocation } = useWeatherStore();
@@ -14,6 +15,7 @@ export function Header() {
           <span>{selectedLocation || "Select Location"}</span>
         </div>
 
+        <DatePreferencePopover />
         <TimePreferencePopover />
       </div>
     </header>

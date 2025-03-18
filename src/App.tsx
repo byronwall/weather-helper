@@ -17,10 +17,14 @@ export function App() {
 
   // Setup resize observer for the grid
   React.useEffect(() => {
-    if (!gridRef.current) return;
+    if (!gridRef.current) {
+      return;
+    }
 
     const updateChartWidth = () => {
-      if (!gridRef.current) return;
+      if (!gridRef.current) {
+        return;
+      }
 
       // Get the actual width of a grid cell by measuring a child element
       const firstChild = gridRef.current.firstElementChild as HTMLElement;
@@ -71,7 +75,6 @@ export function App() {
       <div className="min-h-screen bg-gray-100">
         <Header />
         <main className="container mx-auto p-4 space-y-4">
-          <DateList />
           <UserPreferences />
           <div className="weather-grid" ref={gridRef}>
             {selectedDates.length === 0 ? (
