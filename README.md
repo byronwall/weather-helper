@@ -2,17 +2,9 @@
 
 ## Remaining tasks
 
-- Give a selection of sample data if the API is not working
-- Wire up the API calls to Visual Crossing
-- Revise the date logic to default to the chosen day and still allow changes
-- Enforce the desired time of day - consider limiting the chart view or just the preference matching
 - Create a set of docs in the tool
-- Revise the violation labels to say "too cold" or "too hot" or similar
-- Focus the charts on the desired time range with 2 hours on either side of the selected time
 - Remove the circles
 - Allow a chart to collapse to a boolean display with the exceptions being emphasized
-- Get uploaded to Codesandbox
-- Build a "blank page" that emphasizes quick picks to get the user going
 - Show the available dates picker in a popup - default to the selected day only
 - Get some visual distinction on the header - separate from body content
 - Put the weather preferences into a popover

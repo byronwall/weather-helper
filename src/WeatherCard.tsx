@@ -12,6 +12,20 @@ interface WeatherCardProps {
   width: number;
 }
 
+interface WeatherMetricCardProps {
+  label: string;
+  value: string | number;
+}
+
+function WeatherMetricCard({ label, value }: WeatherMetricCardProps) {
+  return (
+    <div className="flex items-baseline justify-between bg-gray-50 px-4 py-2 rounded">
+      <span className="text-gray-600">{label}</span>
+      <span className="font-medium ml-4">{value}</span>
+    </div>
+  );
+}
+
 export function WeatherCard({ date, width }: WeatherCardProps) {
   const selectedLocation = useWeatherStore((s) => s.selectedLocation);
   const { getWeatherForTimeRange } = useWeatherStore();
@@ -50,6 +64,16 @@ export function WeatherCard({ date, width }: WeatherCardProps) {
   const summary = formatWeatherSummary(weatherData[0]);
   const icon = getWeatherIcon(weatherData[0]);
 
+  const metrics = [
+    { label: "Conditions", value: summary.conditions },
+    { label: "Temperature", value: summary.temperature },
+    { label: "Wind", value: summary.wind },
+    { label: "Precipitation", value: summary.precipitation },
+    { label: "Humidity", value: summary.humidity },
+    { label: "Cloud Cover", value: summary.cloudCover },
+    { label: "UV Index", value: summary.uvIndex },
+  ];
+
   return (
     <div className="bg-white rounded-lg shadow p-4">
       <div className="flex items-center justify-between mb-4">
@@ -68,19 +92,14 @@ export function WeatherCard({ date, width }: WeatherCardProps) {
 
       <div className="mb-4">
         <div className="@container">
-          <div className="grid grid-cols-1 @sm:grid-cols-2 gap-4">
-            <div className="flex items-baseline justify-between bg-gray-50 px-4 py-2 rounded">
-              <span className="text-gray-600">Temperature</span>
-              <span className="text-lg font-medium ml-4">
-                {summary.temperature}
-              </span>
-            </div>
-            <div className="flex items-baseline justify-between bg-gray-50 px-4 py-2 rounded">
-              <span className="text-gray-600">Details</span>
-              <span className="text-lg font-medium ml-4">
-                {summary.details}
-              </span>
-            </div>
+          <div className="grid grid-cols-1 @sm:grid-cols-2 @lg:grid-cols-3 gap-4">
+            {metrics.map((metric) => (
+              <WeatherMetricCard
+                key={metric.label}
+                label={metric.label}
+                value={metric.value}
+              />
+            ))}
           </div>
         </div>
       </div>

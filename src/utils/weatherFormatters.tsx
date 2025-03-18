@@ -2,12 +2,13 @@ import { WeatherMetric } from "../stores/weatherTypes";
 
 export function formatWeatherSummary(weather: WeatherMetric) {
   return {
-    temperature: `${weather.conditions} ${Math.round(weather.temp)}°F`,
-    details: `winds ${Math.round(weather.windspeed)}mph • ${
-      weather.precipprob > 0
-        ? `${weather.precipprob}% chance precipitation`
-        : "no rain"
-    }`,
+    conditions: weather.conditions,
+    temperature: `${Math.round(weather.temp)}°F`,
+    wind: `${Math.round(weather.windspeed)} mph`,
+    precipitation: weather.precipprob > 0 ? `${weather.precipprob}%` : "none",
+    humidity: `${Math.round(weather.humidity)}%`,
+    cloudCover: `${Math.round(weather.cloudcover)}%`,
+    uvIndex: weather.uvindex,
   };
 }
 
