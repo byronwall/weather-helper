@@ -1,5 +1,5 @@
-import { WeatherPreference } from "../stores/userPrefsStore";
-import { HourReading } from "../types/api";
+import { WeatherPreference, TimePreference } from "../stores/userPrefsStore";
+import { WeatherMetric } from "../stores/weatherTypes";
 import { WeatherField } from "../types/user";
 
 const WEATHER_FIELDS: WeatherField[] = [
@@ -50,10 +50,21 @@ function formatTimeRange(start: number, end: number): string {
   return `${formatTime(start)} - ${formatTime(end)}`;
 }
 
+// Check if a timestamp is within the preferred time range
+function isWithinTimeRange(
+  timestamp: number,
+  timePreference: TimePreference
+): boolean {
+  const date = new Date(timestamp);
+  const hour = date.getHours();
+  return hour >= timePreference.startHour && hour < timePreference.endHour;
+}
+
 export function analyzePreferences(
-  hourlyData: HourReading[],
+  hourlyData: WeatherMetric[],
   field: WeatherField,
   preferences: Partial<WeatherPreference>,
+  timePreference: TimePreference,
   minimumDurationHours: number = 1
 ): PreferenceAnalysis {
   const fieldPrefs = preferences[getPreferenceKey(field)];
@@ -78,8 +89,10 @@ export function analyzePreferences(
   for (let i = 0; i < hourlyData.length; i++) {
     const current = hourlyData[i];
     const value = current[field];
-    const time = current.datetimeEpoch * 1000;
-    const isInRange = isValueInRange(value, fieldPrefs);
+    const time = current.timestamp * 1000;
+    const isInTimeRange = isWithinTimeRange(time, timePreference);
+    const isInValueRange = isValueInRange(value, fieldPrefs);
+    const isInRange = isInTimeRange && isInValueRange;
 
     if (!currentSegment) {
       currentSegment = {
@@ -112,7 +125,7 @@ export function analyzePreferences(
 
     // Add duration to inRange total if applicable and meets minimum duration
     if (isInRange && i < hourlyData.length - 1) {
-      const nextTime = hourlyData[i + 1].datetimeEpoch * 1000;
+      const nextTime = hourlyData[i + 1].timestamp * 1000;
       const segmentDuration = nextTime - time;
       if (segmentDuration >= minimumDurationMs) {
         inRangeDuration += segmentDuration;
@@ -169,16 +182,13 @@ export function getPreferenceKey(field: WeatherField): keyof WeatherPreference {
 }
 
 export function analyzeCombinedPreferences(
-  hourlyData: HourReading[],
+  hourlyData: WeatherMetric[],
   preferences: Partial<WeatherPreference>,
+  timePreference: TimePreference,
   minimumDurationHours: number = 1
 ): CombinedPreferenceAnalysis {
-  console.log("Starting analysis with preferences:", preferences);
-  console.log("Minimum duration (hours):", minimumDurationHours);
-
   const violations: PreferenceViolation[] = [];
   const minimumDurationMs = minimumDurationHours * 60 * 60 * 1000;
-  console.log("Minimum duration (ms):", minimumDurationMs);
 
   // Find times when all preferences are met
   const validSegments: PreferenceSegment[] = [];
@@ -186,15 +196,13 @@ export function analyzeCombinedPreferences(
 
   for (let i = 0; i < hourlyData.length; i++) {
     const hour = hourlyData[i];
-    const time = hour.datetimeEpoch * 1000;
-    const timeStr = new Date(time).toLocaleTimeString();
-    console.log("\n--- Processing hour:", timeStr, "---");
-    console.log("Current weather values:", {
-      temp: hour.temp,
-      windspeed: hour.windspeed,
-      precipprob: hour.precipprob,
-      humidity: hour.humidity,
-    });
+    const time = hour.timestamp * 1000;
+
+    // Check if time is within preferred range
+    const isInTimeRange = isWithinTimeRange(time, timePreference);
+    if (!isInTimeRange) {
+      continue;
+    }
 
     // Check if all preferences are met for this hour
     const hourViolations: PreferenceViolation[] = [];
@@ -203,15 +211,12 @@ export function analyzeCombinedPreferences(
       const prefs = preferences[prefKey];
 
       if (!prefs) {
-        console.log(`No preferences set for ${field}`);
         return true;
       }
 
-      const value = hour[field as keyof HourReading] as number;
-      console.log(`Checking ${field}: value=${value}, prefs:`, prefs);
+      const value = hour[field];
 
       if (prefs.min !== undefined && value < prefs.min) {
-        console.log(`${field} below min: ${value} < ${prefs.min}`);
         hourViolations.push({
           field,
           value,
@@ -221,7 +226,6 @@ export function analyzeCombinedPreferences(
         return false;
       }
       if (prefs.max !== undefined && value > prefs.max) {
-        console.log(`${field} above max: ${value} > ${prefs.max}`);
         hourViolations.push({
           field,
           value,
@@ -230,79 +234,48 @@ export function analyzeCombinedPreferences(
         });
         return false;
       }
-      console.log(`${field} within range`);
       return true;
     });
 
     // Add any violations found in this hour
     if (hourViolations.length > 0) {
-      console.log("Violations in this hour:", hourViolations);
       violations.push(...hourViolations);
     }
 
-    console.log("All preferences met for this hour?", allPreferencesMet);
-    console.log("Current segment:", currentSegment);
-
     if (!currentSegment && allPreferencesMet) {
-      console.log("Starting new valid segment");
       currentSegment = {
         startTime: time,
         endTime: time,
         isInRange: true,
       };
     } else if (currentSegment && !allPreferencesMet) {
-      console.log("Ending current segment due to violation");
-      currentSegment.endTime = time;
-      const duration = currentSegment.endTime - currentSegment.startTime;
-      console.log("Segment duration:", duration, "ms");
-      if (duration >= minimumDurationMs) {
-        console.log("Adding valid segment:", {
-          start: new Date(currentSegment.startTime).toLocaleTimeString(),
-          end: new Date(currentSegment.endTime).toLocaleTimeString(),
-          duration: duration / (60 * 60 * 1000),
-        });
+      if (
+        currentSegment.endTime - currentSegment.startTime >=
+        minimumDurationMs
+      ) {
         validSegments.push(currentSegment);
-      } else {
-        console.log("Segment too short, discarding");
       }
       currentSegment = null;
-    } else if (currentSegment && allPreferencesMet) {
-      console.log("Extending current valid segment");
+    } else if (currentSegment) {
       currentSegment.endTime = time;
     }
   }
 
   // Handle the last segment
-  if (currentSegment) {
-    console.log("\n--- Processing final segment ---");
-    const duration = currentSegment.endTime - currentSegment.startTime;
-    console.log("Final segment duration:", duration, "ms");
-    if (duration >= minimumDurationMs) {
-      console.log("Adding final valid segment:", {
-        start: new Date(currentSegment.startTime).toLocaleTimeString(),
-        end: new Date(currentSegment.endTime).toLocaleTimeString(),
-        duration: duration / (60 * 60 * 1000),
-      });
-      validSegments.push(currentSegment);
-    } else {
-      console.log("Final segment too short, discarding");
-    }
+  if (
+    currentSegment &&
+    currentSegment.endTime - currentSegment.startTime >= minimumDurationMs
+  ) {
+    validSegments.push(currentSegment);
   }
 
-  const result = {
-    validTimeRanges: validSegments.map((segment) =>
-      formatTimeRange(segment.startTime, segment.endTime)
-    ),
-    violations,
-  };
-
-  console.log("\n=== Final Analysis ===");
-  console.log("Valid time ranges:", result.validTimeRanges);
-  console.log("Total violations:", violations.length);
-  console.log(
-    "Unique violation fields:",
-    Array.from(new Set(violations.map((v) => v.field))).join(", ")
+  // Format valid time ranges
+  const validTimeRanges = validSegments.map((segment) =>
+    formatTimeRange(segment.startTime, segment.endTime)
   );
 
-  return result;
+  return {
+    validTimeRanges,
+    violations,
+  };
 }

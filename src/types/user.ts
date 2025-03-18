@@ -1,6 +1,6 @@
-import { DayReading } from "./api";
+import { WeatherMetric } from "../stores/weatherTypes";
 
 export type WeatherField = keyof Pick<
-  DayReading,
+  WeatherMetric,
   "temp" | "windspeed" | "precipprob" | "humidity"
 >;

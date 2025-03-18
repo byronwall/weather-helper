@@ -1,6 +1,6 @@
 import { WeatherField } from "./types/user";
 import { WeatherChart } from "./WeatherChart";
-import { HourReading } from "./types/api";
+import { WeatherMetric } from "./stores/weatherTypes";
 
 const WEATHER_FIELDS: WeatherField[] = [
   "temp",
@@ -17,12 +17,12 @@ const FIELD_LABELS: Record<WeatherField, { label: string; unit: string }> = {
 };
 
 interface WeatherChartPanelProps {
-  hourlyData: HourReading[];
+  weatherData: WeatherMetric[];
   width: number;
 }
 
 export function WeatherChartPanel({
-  hourlyData,
+  weatherData,
   width,
 }: WeatherChartPanelProps) {
   return (
@@ -30,7 +30,7 @@ export function WeatherChartPanel({
       {WEATHER_FIELDS.map((field) => (
         <div key={field} className="bg-white rounded-lg shadow w-full">
           <WeatherChart
-            hourlyData={hourlyData}
+            hourlyData={weatherData}
             field={field}
             width={width}
             label={FIELD_LABELS[field].label}

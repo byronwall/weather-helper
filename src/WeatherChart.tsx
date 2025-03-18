@@ -1,14 +1,14 @@
 import { useEffect } from "react";
 import { useCommonAxis } from "./stores/useCommonAxis";
 import { useUserPrefs } from "./stores/userPrefsStore";
-import { HourReading } from "./types/api";
+import { WeatherMetric } from "./stores/weatherTypes";
 import { WeatherField } from "./types/user";
 import { getPreferenceKey } from "./utils/preferenceHelper";
 
 const CHART_ASPECT_RATIO = 1.8; // width:height ratio (e.g. 2.5:1)
 
 interface WeatherChartProps {
-  hourlyData: HourReading[];
+  hourlyData: WeatherMetric[];
   field: WeatherField;
   width: number;
   label: string;
@@ -36,7 +36,7 @@ export function WeatherChart({
   unit,
 }: WeatherChartProps) {
   const { registerLimit, getCurrentLimits, defaultLimits } = useCommonAxis();
-  const { preferences } = useUserPrefs();
+  const { preferences, timePreference } = useUserPrefs();
 
   // Get the corresponding preference key for this field
   const preferenceKey = getPreferenceKey(field);
@@ -52,7 +52,7 @@ export function WeatherChart({
 
   // Convert hourly data to DataPoints
   const data: DataPoint[] = hourlyData.map((hour) => ({
-    time: hour.datetimeEpoch * 1000,
+    time: hour.timestamp * 1000,
     value: hour[field],
   }));
 
@@ -63,13 +63,29 @@ export function WeatherChart({
   const minTime = Math.min(...times);
   const maxTime = Math.max(...times);
 
-  // Calculate the actual min/max from data with padding
+  // Calculate the actual min/max from data and preferences with padding
   const paddingFactor = 0.1;
-  const valueRange = Math.max(...values) - Math.min(...values);
+
+  // Start with data min/max
+  let dataMinValue = Math.min(...values);
+  let dataMaxValue = Math.max(...values);
+
+  // Include preference limits if they exist
+  if (fieldPreferences) {
+    if (fieldPreferences.min !== undefined) {
+      dataMinValue = Math.min(dataMinValue, fieldPreferences.min);
+    }
+    if (fieldPreferences.max !== undefined) {
+      dataMaxValue = Math.max(dataMaxValue, fieldPreferences.max);
+    }
+  }
+
+  // Add padding based on the expanded range
+  const valueRange = dataMaxValue - dataMinValue;
   const padding = valueRange * paddingFactor;
 
-  const dataMinValue = Math.min(...values) - padding;
-  const dataMaxValue = Math.max(...values) + padding;
+  dataMinValue = dataMinValue - padding;
+  dataMaxValue = dataMaxValue + padding;
 
   // Register the current data's limits
   useEffect(() => {
@@ -273,19 +289,77 @@ export function WeatherChart({
     };
   });
 
-  const MIN_PIXELS_BETWEEN_X_LABELS = 80;
-  const numXTicks = Math.min(
-    6,
-    Math.floor(chartWidth / MIN_PIXELS_BETWEEN_X_LABELS)
-  );
-  const xTicks = Array.from({ length: numXTicks + 1 }, (_, i) => {
-    const time = minTime + (i / numXTicks) * (maxTime - minTime);
-    return {
-      time,
-      x: xScale(time),
-      label: formatTime(time),
-    };
-  });
+  // Calculate preferred time range lines
+  const startDate = new Date(minTime);
+  startDate.setHours(timePreference.startHour, 0, 0, 0);
+  const endDate = new Date(minTime);
+  endDate.setHours(timePreference.endHour, 0, 0, 0);
+
+  const startX = xScale(startDate.getTime());
+  const endX = xScale(endDate.getTime());
+
+  // Generate x-axis ticks with preference times as anchors
+  const MIN_PIXELS_BETWEEN_X_LABELS = 60; // Reduced from 80 to allow more labels
+
+  // Start with preferred time range
+  const xTickTimes = [startDate.getTime(), endDate.getTime()];
+
+  // Add ticks between preferred times
+  const timeRangeWidth = endX - startX;
+  const possibleMiddleTicks =
+    Math.floor(timeRangeWidth / MIN_PIXELS_BETWEEN_X_LABELS) - 1;
+
+  if (possibleMiddleTicks > 0) {
+    const timeInterval =
+      (endDate.getTime() - startDate.getTime()) / (possibleMiddleTicks + 1);
+    for (let i = 1; i <= possibleMiddleTicks; i++) {
+      const middleTime = startDate.getTime() + timeInterval * i;
+      // Insert the time in the correct position to maintain chronological order
+      const insertIndex = xTickTimes.findIndex((t) => t > middleTime);
+      xTickTimes.splice(insertIndex, 0, middleTime);
+    }
+  }
+
+  // Add additional times before start time
+  let currentTime = startDate.getTime();
+  while (currentTime > minTime) {
+    currentTime -= 3600000; // subtract 1 hour
+    const potentialX = xScale(currentTime);
+    const lastX = xScale(xTickTimes[0]);
+    if (lastX - potentialX >= MIN_PIXELS_BETWEEN_X_LABELS) {
+      xTickTimes.unshift(currentTime);
+    } else {
+      break;
+    }
+  }
+
+  // Add additional times after end time
+  currentTime = endDate.getTime();
+  while (currentTime < maxTime) {
+    currentTime += 3600000; // add 1 hour
+    const potentialX = xScale(currentTime);
+    const lastX = xScale(xTickTimes[xTickTimes.length - 1]);
+    if (potentialX - lastX >= MIN_PIXELS_BETWEEN_X_LABELS) {
+      xTickTimes.push(currentTime);
+    } else {
+      break;
+    }
+  }
+
+  // Create tick objects
+  const xTicks = xTickTimes.map((time) => ({
+    time,
+    x: xScale(time),
+    label: formatTime(time),
+    isPreferred: time === startDate.getTime() || time === endDate.getTime(),
+    isMiddle: time > startDate.getTime() && time < endDate.getTime(),
+  }));
+
+  const verticalLineStyle = {
+    stroke: "#666",
+    strokeWidth: 1,
+    strokeDasharray: "4,4",
+  };
 
   return (
     <div className="space-y-2">
@@ -351,6 +425,28 @@ export function WeatherChart({
             strokeWidth={1}
           />
         ))}
+
+        {/* Preference time range lines */}
+        <line
+          key="time-start"
+          x1={startX}
+          y1={topGutterHeight}
+          x2={startX}
+          y2={topGutterHeight + chartHeight}
+          stroke={verticalLineStyle.stroke}
+          strokeWidth={verticalLineStyle.strokeWidth}
+          strokeDasharray={verticalLineStyle.strokeDasharray}
+        />
+        <line
+          key="time-end"
+          x1={endX}
+          y1={topGutterHeight}
+          x2={endX}
+          y2={topGutterHeight + chartHeight}
+          stroke={verticalLineStyle.stroke}
+          strokeWidth={verticalLineStyle.strokeWidth}
+          strokeDasharray={verticalLineStyle.strokeDasharray}
+        />
 
         {/* Preference gutter regions */}
         {gutterRegions}
@@ -436,10 +532,13 @@ export function WeatherChart({
               x={tick.x}
               y={height - 15}
               textAnchor={
-                i === 0 ? "start" : i === numXTicks ? "end" : "middle"
+                i === 0 ? "start" : i === xTicks.length - 1 ? "end" : "middle"
               }
               fontSize="12px"
-              fill="#666"
+              fill={tick.isPreferred ? "#000" : "#666"}
+              fontWeight={
+                tick.isPreferred ? "500" : tick.isMiddle ? "400" : "normal"
+              }
             >
               {tick.label}
             </text>

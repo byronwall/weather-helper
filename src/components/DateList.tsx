@@ -13,7 +13,7 @@ export function DateList() {
     loadSampleData,
   } = useWeatherStore();
 
-  const { preferredDayOfWeek } = useUserPrefs();
+  const { preferredDayOfWeek, timePreference } = useUserPrefs();
 
   // Load sample data when component mounts if no data is available
   useEffect(() => {
@@ -25,7 +25,10 @@ export function DateList() {
   // Auto-select dates matching preferred day when it changes
   useEffect(() => {
     if (preferredDayOfWeek !== null) {
-      const availableDates = getAvailableDates();
+      const availableDates = getAvailableDates(
+        selectedLocation,
+        timePreference
+      );
       const matchingDates = availableDates.filter(
         (date) => date.getDay() === preferredDayOfWeek
       );
@@ -46,10 +49,13 @@ export function DateList() {
     getAvailableDates,
     selectedDates,
     toggleDateSelection,
+    selectedLocation,
+    timePreference,
   ]);
 
   // Get available dates and sort them
-  const availableDates = getAvailableDates();
+  const availableDates = getAvailableDates(selectedLocation, timePreference);
+
   const sortedDates = [...availableDates].sort(
     (a, b) => a.getTime() - b.getTime()
   );

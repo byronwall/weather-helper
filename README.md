@@ -16,6 +16,7 @@
 - Show the available dates picker in a popup - default to the selected day only
 - Get some visual distinction on the header - separate from body content
 - Put the weather preferences into a popover
+- Get rid of all the console calls.
 
 ## Overview
 
@@ -82,3 +83,7 @@ Initial prototype
 
 - Synchronized axis limits per metric across all charts
 - Preferences and other user specific data stored to local storage
+
+## Comments while building
+
+- Converting the data structure to a flat list of time + metric values was a good move. Made it way easier to filter and process.

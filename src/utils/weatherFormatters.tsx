@@ -1,19 +1,17 @@
-import { DayReading } from "../types/api";
+import { WeatherMetric } from "../stores/weatherTypes";
 
-export function formatWeatherSummary(dayReading: DayReading) {
+export function formatWeatherSummary(weather: WeatherMetric) {
   return {
-    temperature: `${dayReading.conditions} ${Math.round(dayReading.temp)}°F`,
-    details: `winds ${Math.round(dayReading.windspeed)}mph • ${
-      dayReading.precipprob > 0
-        ? `${dayReading.precipprob}% chance ${
-            dayReading.preciptype?.[0] || "precipitation"
-          }`
+    temperature: `${weather.conditions} ${Math.round(weather.temp)}°F`,
+    details: `winds ${Math.round(weather.windspeed)}mph • ${
+      weather.precipprob > 0
+        ? `${weather.precipprob}% chance precipitation`
         : "no rain"
     }`,
   };
 }
 
-export function getWeatherIcon(dayReading: DayReading) {
+export function getWeatherIcon(weather: WeatherMetric) {
   // Map weather conditions to emoji icons
   const iconMap: Record<string, string> = {
     "clear-day": "☀️",
@@ -29,7 +27,7 @@ export function getWeatherIcon(dayReading: DayReading) {
 
   return (
     <span className="text-2xl">
-      {iconMap[dayReading.icon] || iconMap["partly-cloudy-day"]}
+      {iconMap[weather.icon] || iconMap["partly-cloudy-day"]}
     </span>
   );
 }

@@ -6,7 +6,6 @@ import {
 import { WeatherChartPanel } from "./WeatherChartPanel";
 import { useUserPrefs } from "./stores/userPrefsStore";
 import { analyzeCombinedPreferences } from "./utils/preferenceHelper";
-import { WeatherField } from "./types/user";
 
 interface WeatherCardProps {
   date: Date;
@@ -15,11 +14,23 @@ interface WeatherCardProps {
 }
 
 export function WeatherCard({ date, location, width }: WeatherCardProps) {
-  const { getWeatherForDate } = useWeatherStore();
-  const { preferences, minimumDuration } = useUserPrefs();
-  const dayData = getWeatherForDate(location, date);
+  const { getWeatherForTimeRange } = useWeatherStore();
+  const { preferences, timePreference, minimumDuration } = useUserPrefs();
 
-  if (!dayData) {
+  // Convert timePreference to TimeRange
+  // need epch time - add day
+  const start = new Date(date);
+  start.setHours(timePreference.startHour, 0, 0, 0);
+  const end = new Date(date);
+  end.setHours(timePreference.endHour, 0, 0, 0);
+  const timeRange = {
+    start: Math.floor(start.getTime() / 1000),
+    end: Math.floor(end.getTime() / 1000),
+  };
+
+  const weatherData = getWeatherForTimeRange(location, timeRange);
+
+  if (!weatherData || weatherData.length === 0) {
     return (
       <div className="bg-white rounded shadow p-4" style={{ width }}>
         <p>No weather data available for this date and location.</p>
@@ -27,108 +38,110 @@ export function WeatherCard({ date, location, width }: WeatherCardProps) {
     );
   }
 
-  // Analyze all preferences together
-  const preferenceAnalysis = analyzeCombinedPreferences(
-    dayData.hours,
+  // Analyze preferences
+  const analysis = analyzeCombinedPreferences(
+    weatherData,
     preferences,
+    timePreference,
     minimumDuration
   );
 
-  const weatherSummary = formatWeatherSummary(dayData);
-  const icon = getWeatherIcon(dayData);
+  // Get weather summary using first data point
+  const summary = formatWeatherSummary(weatherData[0]);
+  const icon = getWeatherIcon(weatherData[0]);
 
-  const getFieldDisplayName = (field: WeatherField): string => {
-    switch (field) {
-      case "temp":
-        return "Temperature";
-      case "windspeed":
-        return "Wind Speed";
-      case "precipprob":
-        return "Precipitation";
-      case "humidity":
-        return "Humidity";
-      default:
-        return field;
-    }
+  // Format time range
+  const formatHour = (hour: number) => {
+    if (hour === 0) return "12 AM";
+    if (hour < 12) return `${hour} AM`;
+    if (hour === 12) return "12 PM";
+    return `${hour - 12} PM`;
   };
 
-  return (
-    <div className="bg-white rounded shadow p-4">
-      {/* Heading */}
-      <h2 className="text-xl font-bold mb-2">
-        {date.toLocaleDateString("en-US", {
-          weekday: "long",
-          month: "long",
-          day: "numeric",
-        })}
-      </h2>
+  const timeRangeDisplay = `${formatHour(
+    timePreference.startHour
+  )} - ${formatHour(timePreference.endHour)}`;
 
-      {/* Preference Summary */}
-      <div className="mb-4 p-3 bg-gray-50 rounded-lg space-y-2">
-        <div className="flex items-center gap-2">
-          <h3 className="text-sm font-semibold text-gray-700">
-            Good Time Ranges:
-          </h3>
-          {/* Show valid time ranges if any exist */}
-          {preferenceAnalysis.validTimeRanges.length > 0 ? (
-            <div className="flex gap-2">
-              {preferenceAnalysis.validTimeRanges.map((range, idx) => (
-                <span key={idx} className="text-sm font-bold">
-                  {range}
-                </span>
-              ))}
-            </div>
+  return (
+    <div className="bg-white rounded-lg shadow p-4">
+      <div className="flex items-center justify-between mb-4">
+        <div>
+          <h2 className="text-xl font-bold">{location}</h2>
+          <p className="text-gray-600">
+            {date.toLocaleDateString("en-US", {
+              weekday: "long",
+              month: "long",
+              day: "numeric",
+            })}
+          </p>
+        </div>
+        <div className="text-4xl">{icon}</div>
+      </div>
+
+      <div className="mb-4">
+        <h3 className="text-lg font-medium text-gray-900 mb-2">
+          Weather Summary
+        </h3>
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <p className="text-sm text-gray-600">Temperature</p>
+            <p className="text-lg font-medium">{summary.temperature}</p>
+          </div>
+          <div>
+            <p className="text-sm text-gray-600">Details</p>
+            <p className="text-lg font-medium">{summary.details}</p>
+          </div>
+        </div>
+      </div>
+
+      <div className="mb-4">
+        <h3 className="text-lg font-medium text-gray-900 mb-2">
+          Preference Analysis
+        </h3>
+        <div className="space-y-2">
+          <p className="text-sm text-gray-600">
+            Preferred Time Range: {timeRangeDisplay}
+          </p>
+          {analysis.validTimeRanges.length > 0 ? (
+            <>
+              <p className="text-sm text-green-600 font-medium">
+                Good conditions during:
+              </p>
+              <ul className="list-disc list-inside text-sm text-green-600">
+                {analysis.validTimeRanges.map((range, index) => (
+                  <li key={index}>{range}</li>
+                ))}
+              </ul>
+            </>
           ) : (
-            <p className="text-sm">No viable time slots found.</p>
+            <p className="text-sm text-red-600">
+              No periods meet all preferences within the time range
+            </p>
+          )}
+          {analysis.violations.length > 0 && (
+            <>
+              <p className="text-sm text-red-600 font-medium mt-2">
+                Preference violations:
+              </p>
+              <ul className="list-disc list-inside text-sm text-red-600">
+                {analysis.violations.map((violation, index) => (
+                  <li key={index}>
+                    {violation.field}: {violation.value}
+                    {violation.type === "min" ? " < " : " > "}
+                    {violation.limit}
+                  </li>
+                ))}
+              </ul>
+            </>
           )}
         </div>
-
-        {/* Show violations if any exist */}
-        {preferenceAnalysis.violations.length > 0 && (
-          <p className="text-sm text-red-600">
-            Violations:{" "}
-            {Array.from(
-              new Set(preferenceAnalysis.violations.map((v) => v.field))
-            )
-              .map((field) => {
-                const fieldViolations = preferenceAnalysis.violations.filter(
-                  (v) => v.field === field
-                );
-                const worstViolation = fieldViolations.reduce(
-                  (worst, current) => {
-                    const worstDiff = Math.abs(worst.value - worst.limit);
-                    const currentDiff = Math.abs(current.value - current.limit);
-                    return currentDiff > worstDiff ? current : worst;
-                  }
-                );
-                return `${getFieldDisplayName(field)} ${
-                  worstViolation.value
-                } (${worstViolation.type === "min" ? "min" : "max"}: ${
-                  worstViolation.limit
-                })`;
-              })
-              .join(" • ")}
-          </p>
-        )}
       </div>
 
-      {/* Weather summary row */}
-      <div className="flex items-center space-x-4 mb-4">
-        {/* Weather icon */}
-        <div className="w-12 h-12 flex items-center justify-center rounded-full bg-gray-100">
-          {icon}
-        </div>
-
-        {/* Text summary: temperature, wind, etc. */}
-        <div className="text-sm">
-          <p className="font-semibold">{weatherSummary.temperature}</p>
-          <p>{weatherSummary.details}</p>
-        </div>
-      </div>
-
-      {/* Chart Area */}
-      <div className="bg-gray-100 rounded w-full">
-        <WeatherChartPanel hourlyData={dayData.hours} width={width - 16} />
+      <div>
+        <h3 className="text-lg font-medium text-gray-900 mb-2">
+          Weather Charts
+        </h3>
+        <WeatherChartPanel weatherData={weatherData} width={width} />
       </div>
     </div>
   );

@@ -1,5 +1,6 @@
 import { useUserPrefs, WeatherPreference } from "../stores/userPrefsStore";
 import { ActivitySelector } from "./ActivitySelector";
+import { TimePreference } from "./TimePreference";
 
 interface MetricConfig {
   label: string;
@@ -43,30 +44,13 @@ export function UserPreferences() {
   };
 
   return (
-    <div className="p-4 bg-white rounded-lg shadow max-w-2xl">
-      <h2 className="text-xl font-bold mb-3">Weather Preferences</h2>
-      <div className="space-y-4">
-        <div className="pb-4 border-b">
-          <ActivitySelector />
-        </div>
-        <div className="flex items-center gap-4 border-b pb-4">
-          <div className="w-28">
-            <label className="font-medium">Min Duration</label>
-          </div>
-          <div className="flex items-center gap-2">
-            <input
-              type="number"
-              className="w-20 border rounded px-2 py-1 text-sm"
-              value={minimumDuration}
-              onChange={(e) => handleDurationChange(e.target.value)}
-              step="0.1"
-              min="0.1"
-              placeholder="1.0"
-            />
-            <span className="text-sm text-gray-600">hours</span>
-          </div>
-        </div>
-        <div className="space-y-2">
+    <div className="space-y-6">
+      <div>
+        <h3 className="text-lg font-medium text-gray-900 mb-4">
+          Weather Preferences
+        </h3>
+        <ActivitySelector />
+        <div className="mt-4 space-y-2">
           {Object.entries(METRICS).map(([metric, config]) => (
             <div key={metric} className="flex items-center gap-4">
               <div className="w-28">
@@ -116,6 +100,31 @@ export function UserPreferences() {
               </div>
             </div>
           ))}
+        </div>
+      </div>
+
+      <div>
+        <h3 className="text-lg font-medium text-gray-900 mb-4">
+          Time Preferences
+        </h3>
+        <TimePreference />
+      </div>
+
+      <div>
+        <h3 className="text-lg font-medium text-gray-900 mb-4">
+          Duration Preferences
+        </h3>
+        <div className="flex items-center gap-4">
+          <label className="font-medium">Minimum Duration:</label>
+          <input
+            type="number"
+            className="w-20 border rounded px-2 py-1 text-sm"
+            value={minimumDuration}
+            onChange={(e) => handleDurationChange(e.target.value)}
+            min="0.1"
+            step="0.1"
+          />
+          <span className="text-sm text-gray-600">hours</span>
         </div>
       </div>
     </div>
