@@ -9,9 +9,8 @@ export function Header() {
       <div className="flex flex-col space-y-2 md:flex-row md:space-y-0 md:items-center md:space-x-6">
         <div className="text-2xl font-bold">Weather or Not</div>
 
-        <LocationPopover />
-
-        <div className="flex items-center gap-2 flex-wrap">
+        <div className="flex items-center gap-4 flex-wrap">
+          <LocationPopover />
           <DatePreferencePopover />
           <TimePreferencePopover />
           <WeatherPreferencesPopover />
