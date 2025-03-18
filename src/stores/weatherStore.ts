@@ -13,28 +13,30 @@ interface PreferredTime {
   endHour: number; // 0-23
 }
 
+const baseUrl = "/weather-or-not";
+
 export const sampleDataSets = [
   // these are hard coded and stored in the public folder
   // keeping these here in case the API breaks
   {
     location: "46220 Indy",
-    data: "/46220_IN_home.json",
+    data: `${baseUrl}/46220_IN_home.json`,
   },
   {
     location: "96740 Honolulu",
-    data: "/96740_HI_hot.json",
+    data: `${baseUrl}/96740_HI_hot.json`,
   },
   {
     location: "99701 Anchorage",
-    data: "/99701_AK_cold.json",
+    data: `${baseUrl}/99701_AK_cold.json`,
   },
   {
     location: "70601 New Orleans",
-    data: "/70601_LA_humid.json",
+    data: `${baseUrl}/70601_LA_humid.json`,
   },
   {
     location: "Mt Washington",
-    data: "/MtWash_NH_wind.json",
+    data: `${baseUrl}/MtWash_NH_wind.json`,
   },
 ];
 
