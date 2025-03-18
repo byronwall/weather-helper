@@ -14,6 +14,8 @@ interface PreferredTime {
 }
 
 export const sampleDataSets = [
+  // these are hard coded and stored in the public folder
+  // keeping these here in case the API breaks
   {
     location: "46220 Indy",
     data: "/46220_IN_home.json",
@@ -136,7 +138,10 @@ export const useWeatherStore = create<WeatherStore>((set, get) => ({
 
   loadWeatherData: async (location) => {
     try {
-      const response = await fetch(`/api/weather/${location}`);
+      const key = "SY8JLD9XBA3653FFPY73QDPU6"; // This will be updated later
+      const response = await fetch(
+        `https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/${location}?unitGroup=us&key=${key}&contentType=json`
+      );
       if (!response.ok) {
         throw new Error("Failed to fetch weather data");
       }
