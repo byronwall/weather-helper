@@ -9,6 +9,13 @@ const WEATHER_FIELDS: WeatherField[] = [
   "humidity",
 ];
 
+const FIELD_LABELS: Record<WeatherField, { label: string; unit: string }> = {
+  temp: { label: "Temp", unit: "°F" },
+  windspeed: { label: "Wind", unit: "mph" },
+  precipprob: { label: "Rain", unit: "%" },
+  humidity: { label: "Humidity", unit: "%" },
+};
+
 interface WeatherChartPanelProps {
   hourlyData: HourReading[];
   width: number;
@@ -22,8 +29,13 @@ export function WeatherChartPanel({
     <div className="flex flex-col gap-4 w-full">
       {WEATHER_FIELDS.map((field) => (
         <div key={field} className="bg-white rounded-lg shadow w-full">
-          <h3 className="text-lg font-semibold mb-2 px-4 pt-4">{field}</h3>
-          <WeatherChart hourlyData={hourlyData} field={field} width={width} />
+          <WeatherChart
+            hourlyData={hourlyData}
+            field={field}
+            width={width}
+            label={FIELD_LABELS[field].label}
+            unit={FIELD_LABELS[field].unit}
+          />
         </div>
       ))}
     </div>

@@ -10,7 +10,9 @@ const CHART_ASPECT_RATIO = 2.5; // width:height ratio (e.g. 2.5:1)
 interface WeatherChartProps {
   hourlyData: HourReading[];
   field: WeatherField;
-  width: number; // New prop for width
+  width: number;
+  label: string;
+  unit: string;
 }
 
 interface DataPoint {
@@ -26,7 +28,13 @@ function formatTime(timestamp: number): string {
     .replace(" ", "");
 }
 
-export function WeatherChart({ hourlyData, field, width }: WeatherChartProps) {
+export function WeatherChart({
+  hourlyData,
+  field,
+  width,
+  label,
+  unit,
+}: WeatherChartProps) {
   const { registerLimit, getCurrentLimits, defaultLimits } = useCommonAxis();
   const { preferences } = useUserPrefs();
 
@@ -36,12 +44,11 @@ export function WeatherChart({ hourlyData, field, width }: WeatherChartProps) {
 
   // Calculate height based on width and aspect ratio
   const height = Math.round(width / CHART_ASPECT_RATIO);
-  const topGutterHeight = Math.round(height * 0.05); // 5% of height
-  const bottomGutterHeight = Math.round(height * 0.25); // 25% of height
-  const leftGutterWidth = Math.round(width * 0.08); // 8% of width
-  const rightGutterWidth = Math.round(width * 0.03); // 3% of width
-
-  // Analyze preferences
+  const topGutterHeight = 20;
+  const bottomGutterHeight = 40;
+  const leftAxisLabel = 30;
+  const leftGutterWidth = leftAxisLabel + 30;
+  const rightGutterWidth = 10;
 
   // Convert hourly data to DataPoints
   const data: DataPoint[] = hourlyData.map((hour) => ({
@@ -283,6 +290,19 @@ export function WeatherChart({ hourlyData, field, width }: WeatherChartProps) {
   return (
     <div className="space-y-2">
       <svg width={width} height={height} className="bg-white rounded-lg">
+        {/* Y-axis label */}
+        <text
+          x={leftAxisLabel / 2}
+          y={height / 2}
+          transform={`rotate(-90 ${leftAxisLabel / 2} ${height / 2})`}
+          textAnchor="middle"
+          fontSize="14px"
+          fill="#666"
+          className="font-medium"
+        >
+          {label} ({unit})
+        </text>
+
         {/* Background gridlines */}
         {yTicks.map((tick, i) => (
           <line
