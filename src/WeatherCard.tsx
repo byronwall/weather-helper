@@ -6,6 +6,7 @@ import {
 import { WeatherChartPanel } from "./WeatherChartPanel";
 import { useUserPrefs } from "./stores/userPrefsStore";
 import { analyzeCombinedPreferences } from "./utils/preferenceHelper";
+import { useChartSettings } from "./stores/chartSettingsStore";
 
 interface WeatherCardProps {
   date: Date;
@@ -18,8 +19,13 @@ interface WeatherMetricCardProps {
 }
 
 function WeatherMetricCard({ label, value }: WeatherMetricCardProps) {
+  const { settings } = useChartSettings();
+
   return (
-    <div className="flex items-baseline justify-between bg-gray-50 px-3 py-1.5 rounded min-w-0 w-[180px]">
+    <div
+      className={`flex items-baseline justify-between bg-gray-50 px-3 py-1.5 rounded min-w-0`}
+      style={{ width: settings.metricCardWidth }}
+    >
       <span className="text-gray-600 truncate mr-2">{label}</span>
       <span className="font-medium flex-shrink-0">{value}</span>
     </div>
@@ -30,6 +36,7 @@ export function WeatherCard({ date, width }: WeatherCardProps) {
   const selectedLocation = useWeatherStore((s) => s.selectedLocation);
   const { getWeatherForTimeRange } = useWeatherStore();
   const { preferences, timePreference, minimumDuration } = useUserPrefs();
+  const { settings } = useChartSettings();
 
   // Convert timePreference to TimeRange
   // need epch time - add day
@@ -160,7 +167,10 @@ export function WeatherCard({ date, width }: WeatherCardProps) {
       <div>
         <WeatherChartPanel
           weatherData={weatherData}
-          width={Math.min(width, window.innerWidth - 64)}
+          width={Math.min(
+            width,
+            window.innerWidth - settings.chartPanelSidePadding
+          )}
         />
       </div>
     </div>

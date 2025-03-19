@@ -4,8 +4,7 @@ import { useUserPrefs } from "./stores/userPrefsStore";
 import { WeatherMetric } from "./stores/weatherTypes";
 import { WeatherField } from "./types/user";
 import { getPreferenceKey } from "./utils/preferenceHelper";
-
-const CHART_ASPECT_RATIO = 1.8; // width:height ratio (e.g. 2.5:1)
+import { useChartSettings } from "./stores/chartSettingsStore";
 
 interface WeatherChartProps {
   hourlyData: WeatherMetric[];
@@ -37,18 +36,22 @@ export function WeatherChart({
 }: WeatherChartProps) {
   const { registerLimit, getCurrentLimits, defaultLimits } = useCommonAxis();
   const { preferences, timePreference } = useUserPrefs();
+  const { settings } = useChartSettings();
 
   // Get the corresponding preference key for this field
   const preferenceKey = getPreferenceKey(field);
   const fieldPreferences = preferences[preferenceKey];
 
   // Calculate height based on width and aspect ratio
-  const height = Math.round(width / CHART_ASPECT_RATIO);
-  const topGutterHeight = 20;
-  const bottomGutterHeight = 40;
-  const leftAxisLabel = 30;
-  const leftGutterWidth = leftAxisLabel + 30;
-  const rightGutterWidth = 5;
+  const height = Math.round(width / settings.chartAspectRatio);
+  const {
+    topGutterHeight,
+    bottomGutterHeight,
+    leftAxisLabel,
+    leftGutterPadding,
+    rightGutterWidth,
+  } = settings;
+  const leftGutterWidth = leftAxisLabel + leftGutterPadding;
 
   // Convert hourly data to DataPoints
   const data: DataPoint[] = hourlyData.map((hour) => ({
@@ -64,7 +67,7 @@ export function WeatherChart({
   const maxTime = Math.max(...times);
 
   // Calculate the actual min/max from data and preferences with padding
-  const paddingFactor = 0.1;
+  const paddingFactor = settings.valuePaddingFactor;
 
   // Start with data min/max
   let dataMinValue = Math.min(...values);
@@ -113,7 +116,9 @@ export function WeatherChart({
 
   // Generate path d-attribute for the main line
   const generatePathD = (points: DataPoint[]): string => {
-    if (points.length === 0) return "";
+    if (points.length === 0) {
+      return "";
+    }
     let d = `M ${xScale(points[0].time)},${yScale(points[0].value)}`;
     for (let i = 1; i < points.length; i++) {
       const px = xScale(points[i].time);
@@ -269,14 +274,15 @@ export function WeatherChart({
 
   // Generate axis ticks and gridlines
   const { increment } = defaultLimits[field];
-  const MIN_PIXELS_BETWEEN_LABELS = 15; // Minimum pixels between labels
 
   // Calculate how many increments would fit with the base increment
   const baseNumSteps = Math.floor((maxValue - minValue) / increment);
   const pixelsPerStep = chartHeight / baseNumSteps;
 
   // Calculate multiplier needed to meet minimum pixel threshold
-  const multiplier = Math.ceil(MIN_PIXELS_BETWEEN_LABELS / pixelsPerStep);
+  const multiplier = Math.ceil(
+    settings.minPixelsBetweenYLabels / pixelsPerStep
+  );
   const adjustedIncrement = increment * multiplier;
 
   const numSteps = Math.floor((maxValue - minValue) / adjustedIncrement);
@@ -299,16 +305,14 @@ export function WeatherChart({
   const endX = xScale(endDate.getTime());
 
   // Generate x-axis ticks with preference times as anchors
-  const MIN_PIXELS_BETWEEN_X_LABELS = 60; // Reduced from 80 to allow more labels
+  const timeRangeWidth = endX - startX;
+  const possibleMiddleTicks =
+    Math.floor(timeRangeWidth / settings.minPixelsBetweenXLabels) - 1;
 
   // Start with preferred time range
   const xTickTimes = [startDate.getTime(), endDate.getTime()];
 
   // Add ticks between preferred times
-  const timeRangeWidth = endX - startX;
-  const possibleMiddleTicks =
-    Math.floor(timeRangeWidth / MIN_PIXELS_BETWEEN_X_LABELS) - 1;
-
   if (possibleMiddleTicks > 0) {
     const timeInterval =
       (endDate.getTime() - startDate.getTime()) / (possibleMiddleTicks + 1);
@@ -326,7 +330,7 @@ export function WeatherChart({
     currentTime -= 3600000; // subtract 1 hour
     const potentialX = xScale(currentTime);
     const lastX = xScale(xTickTimes[0]);
-    if (lastX - potentialX >= MIN_PIXELS_BETWEEN_X_LABELS) {
+    if (lastX - potentialX >= settings.minPixelsBetweenXLabels) {
       xTickTimes.unshift(currentTime);
     } else {
       break;
@@ -339,7 +343,7 @@ export function WeatherChart({
     currentTime += 3600000; // add 1 hour
     const potentialX = xScale(currentTime);
     const lastX = xScale(xTickTimes[xTickTimes.length - 1]);
-    if (potentialX - lastX >= MIN_PIXELS_BETWEEN_X_LABELS) {
+    if (potentialX - lastX >= settings.minPixelsBetweenXLabels) {
       xTickTimes.push(currentTime);
     } else {
       break;
