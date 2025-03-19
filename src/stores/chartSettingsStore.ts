@@ -1,9 +1,11 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
-interface ChartSettings {
+export interface ChartSettings {
   // Chart dimensions and layout
   chartAspectRatio: number;
+  maxChartHeight: number;
+  maxChartWidth: number;
   topGutterHeight: number;
   bottomGutterHeight: number;
   leftAxisLabel: number;
@@ -18,6 +20,16 @@ interface ChartSettings {
   // Card and panel settings
   metricCardWidth: number;
   chartPanelSidePadding: number;
+  showMetricValues: boolean;
+  onlyShowChartsWithPreferences: boolean;
+
+  // Gradient settings
+  gradientOpacityAbove: number;
+  gradientOpacityBelow: number;
+  gradientStopCount: number;
+
+  // Display settings
+  visibleWeatherFields: string[];
 }
 
 interface ChartSettingsStore {
@@ -29,6 +41,8 @@ interface ChartSettingsStore {
 const defaultSettings: ChartSettings = {
   // Chart dimensions and layout
   chartAspectRatio: 1.8,
+  maxChartHeight: 300,
+  maxChartWidth: 1200,
   topGutterHeight: 20,
   bottomGutterHeight: 40,
   leftAxisLabel: 30,
@@ -43,6 +57,16 @@ const defaultSettings: ChartSettings = {
   // Card and panel settings
   metricCardWidth: 180,
   chartPanelSidePadding: 64,
+  showMetricValues: true,
+  onlyShowChartsWithPreferences: false,
+
+  // Gradient settings
+  gradientOpacityAbove: 0.4,
+  gradientOpacityBelow: 0.4,
+  gradientStopCount: 3,
+
+  // Display settings
+  visibleWeatherFields: ["temp", "precip", "humidity", "windSpeed"],
 };
 
 export const useChartSettings = create<ChartSettingsStore>()(

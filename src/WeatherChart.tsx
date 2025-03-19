@@ -42,8 +42,14 @@ export function WeatherChart({
   const preferenceKey = getPreferenceKey(field);
   const fieldPreferences = preferences[preferenceKey];
 
+  // Calculate height based on width and aspect ratio, respecting max height
+  const calculatedHeight = Math.round(width / settings.chartAspectRatio);
+  const height = Math.min(calculatedHeight, settings.maxChartHeight);
+
+  // Limit width to max chart width
+  const adjustedWidth = Math.min(width, settings.maxChartWidth);
+
   // Calculate height based on width and aspect ratio
-  const height = Math.round(width / settings.chartAspectRatio);
   const {
     topGutterHeight,
     bottomGutterHeight,
@@ -103,7 +109,7 @@ export function WeatherChart({
 
   // Compute chart dimension for the central region
   const chartHeight = height - topGutterHeight - bottomGutterHeight;
-  const chartWidth = width - leftGutterWidth - rightGutterWidth;
+  const chartWidth = adjustedWidth - leftGutterWidth - rightGutterWidth;
 
   // Scale functions
   const xScale = (t: number): number =>
@@ -140,7 +146,7 @@ export function WeatherChart({
           key="min-line"
           x1={leftGutterWidth}
           y1={y}
-          x2={width - rightGutterWidth}
+          x2={adjustedWidth - rightGutterWidth}
           y2={y}
           stroke={chartColor}
           strokeWidth={1}
@@ -209,7 +215,7 @@ export function WeatherChart({
           key="max-line"
           x1={leftGutterWidth}
           y1={y}
-          x2={width - rightGutterWidth}
+          x2={adjustedWidth - rightGutterWidth}
           y2={y}
           stroke={chartColor}
           strokeWidth={1}
@@ -367,7 +373,11 @@ export function WeatherChart({
 
   return (
     <div className="space-y-2">
-      <svg width={width} height={height} className="bg-white rounded-lg">
+      <svg
+        width={adjustedWidth}
+        height={height}
+        className="bg-white rounded-lg"
+      >
         {/* Gradient definitions */}
         <defs>
           <linearGradient
@@ -377,8 +387,22 @@ export function WeatherChart({
             y1="0"
             y2="1"
           >
-            <stop offset="25%" stopColor={chartColor} stopOpacity="0" />
-            <stop offset="100%" stopColor={chartColor} stopOpacity="0.4" />
+            {Array.from({ length: settings.gradientStopCount }).map((_, i) => {
+              const offset = (100 / (settings.gradientStopCount - 1)) * i;
+              const opacity =
+                i === 0
+                  ? 0
+                  : settings.gradientOpacityBelow *
+                    (i / (settings.gradientStopCount - 1));
+              return (
+                <stop
+                  key={i}
+                  offset={`${offset}%`}
+                  stopColor={chartColor}
+                  stopOpacity={opacity}
+                />
+              );
+            })}
           </linearGradient>
           <linearGradient
             id={`above-gradient-${field}`}
@@ -387,9 +411,20 @@ export function WeatherChart({
             y1="0"
             y2="1"
           >
-            <stop offset="0%" stopColor={chartColor} stopOpacity="0.4" />
-            <stop offset="25%" stopColor={chartColor} stopOpacity="0.2" />
-            <stop offset="100%" stopColor={chartColor} stopOpacity="0" />
+            {Array.from({ length: settings.gradientStopCount }).map((_, i) => {
+              const offset = (100 / (settings.gradientStopCount - 1)) * i;
+              const opacity =
+                settings.gradientOpacityAbove *
+                (1 - i / (settings.gradientStopCount - 1));
+              return (
+                <stop
+                  key={i}
+                  offset={`${offset}%`}
+                  stopColor={chartColor}
+                  stopOpacity={opacity}
+                />
+              );
+            })}
           </linearGradient>
         </defs>
 
@@ -412,7 +447,7 @@ export function WeatherChart({
             key={`grid-y-${i}`}
             x1={leftGutterWidth}
             y1={tick.y}
-            x2={width - rightGutterWidth}
+            x2={adjustedWidth - rightGutterWidth}
             y2={tick.y}
             stroke="#e0e0e0"
             strokeWidth={1}
@@ -491,7 +526,7 @@ export function WeatherChart({
         <line
           x1={leftGutterWidth}
           y1={topGutterHeight + chartHeight}
-          x2={width - rightGutterWidth}
+          x2={adjustedWidth - rightGutterWidth}
           y2={topGutterHeight + chartHeight}
           stroke="#666"
           strokeWidth={1}

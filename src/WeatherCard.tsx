@@ -81,6 +81,9 @@ export function WeatherCard({ date, width }: WeatherCardProps) {
     { label: "UV Index", value: summary.uvIndex },
   ];
 
+  // Filter metrics based on visible weather fields
+  const visibleMetrics = metrics;
+
   return (
     <div className="bg-white rounded-lg shadow p-4 w-full overflow-hidden min-w-0 max-w-full">
       <div className="flex items-center justify-between mb-4 min-w-0 gap-2">
@@ -97,19 +100,21 @@ export function WeatherCard({ date, width }: WeatherCardProps) {
         <div className="text-4xl flex-shrink-0">{icon}</div>
       </div>
 
-      <div className="mb-4">
-        <div className="min-w-0 max-w-full">
-          <div className="flex flex-wrap gap-2">
-            {metrics.map((metric) => (
-              <WeatherMetricCard
-                key={metric.label}
-                label={metric.label}
-                value={metric.value}
-              />
-            ))}
+      {settings.showMetricValues && (
+        <div className="mb-4">
+          <div className="min-w-0 max-w-full">
+            <div className="flex flex-wrap gap-2">
+              {visibleMetrics.map((metric) => (
+                <WeatherMetricCard
+                  key={metric.label}
+                  label={metric.label}
+                  value={metric.value}
+                />
+              ))}
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       <div className="mb-4 min-w-0">
         <div className="space-y-2">
