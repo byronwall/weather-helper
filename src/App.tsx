@@ -45,7 +45,7 @@ export function App() {
   return (
     <div className="min-h-screen bg-gray-100">
       <Header />
-      <main className="w-full p-4 space-y-4">
+      <main className="w-full p-0 sm:p-4 space-y-4">
         {!selectedLocation && (
           <div className="bg-white rounded shadow p-4 w-fit mx-auto">
             <LocationInput />
@@ -54,7 +54,7 @@ export function App() {
 
         <div
           ref={gridRef}
-          className="flex flex-col md:flex-row flex-wrap gap-4 justify-center max-w-[1800px] mx-auto px-4"
+          className="flex flex-col md:flex-row flex-wrap gap-4 justify-center max-w-[1800px] mx-auto p-0 sm:p-4"
         >
           {selectedDates &&
             selectedDates
@@ -63,7 +63,7 @@ export function App() {
                 <div
                   key={date.toISOString()}
                   style={{ maxWidth: `${settings.maxPanelWidth}px` }}
-                  className="flex-1 min-w-[400px]"
+                  className="flex-1"
                 >
                   <WeatherCard
                     date={date}
