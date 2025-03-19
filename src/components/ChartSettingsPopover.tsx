@@ -14,7 +14,8 @@ type SettingConfig = {
   min?: number;
   max?: number;
   tooltip: string;
-  type: "number" | "boolean" | "array";
+  type: "number" | "boolean" | "array" | "select";
+  options?: { value: string; label: string }[];
 };
 
 type SettingsGroup = {
@@ -39,6 +40,13 @@ export function ChartSettingsPopover() {
     setLocalSettings(settings);
   };
 
+  const handleExportSettings = () => {
+    const settingsCode = JSON.stringify(localSettings, null, 2);
+    navigator.clipboard.writeText(settingsCode).then(() => {
+      alert("Settings copied to clipboard!");
+    });
+  };
+
   const updateNumberSetting = (key: keyof ChartSettings) => (value: number) => {
     setLocalSettings((prev) => ({ ...prev, [key]: value }));
   };
@@ -58,6 +66,10 @@ export function ChartSettingsPopover() {
       }
       return { ...prev, visibleWeatherFields: Array.from(fields) };
     });
+  };
+
+  const updateSelectSetting = (key: keyof ChartSettings) => (value: string) => {
+    setLocalSettings((prev) => ({ ...prev, [key]: value }));
   };
 
   const settingsGroups: SettingsGroups = {
@@ -137,6 +149,32 @@ export function ChartSettingsPopover() {
     display: {
       title: "Display",
       settings: [
+        {
+          key: "lineStyle",
+          label: "Line Style",
+          tooltip: "Choose between straight or curved lines",
+          type: "select",
+          options: [
+            { value: "straight", label: "Straight" },
+            { value: "curved", label: "Curved" },
+          ],
+        },
+        {
+          key: "lineWidth",
+          label: "Line Width",
+          min: 1,
+          max: 5,
+          tooltip: "Width of the chart lines",
+          type: "number",
+        },
+        {
+          key: "pointSize",
+          label: "Point Size",
+          min: 0,
+          max: 5,
+          tooltip: "Size of data points (0 to hide)",
+          type: "number",
+        },
         {
           key: "showMetricValues",
           label: "Show Metric Values",
@@ -325,6 +363,36 @@ export function ChartSettingsPopover() {
                       );
                     }
 
+                    if (setting.type === "select") {
+                      const key = setting.key as keyof ChartSettings;
+                      return (
+                        <div
+                          key={key}
+                          className="col-span-2 flex items-center justify-between p-2 hover:bg-gray-50 rounded"
+                        >
+                          <div className="flex items-center">
+                            <span className="text-sm">{setting.label}</span>
+                            <span className="ml-2 text-xs text-gray-500">
+                              {setting.tooltip}
+                            </span>
+                          </div>
+                          <select
+                            value={localSettings[key] as string}
+                            onChange={(e) =>
+                              updateSelectSetting(key)(e.target.value)
+                            }
+                            className="px-3 py-1.5 rounded border text-sm"
+                          >
+                            {setting.options?.map((option) => (
+                              <option key={option.value} value={option.value}>
+                                {option.label}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      );
+                    }
+
                     const key = setting.key as keyof ChartSettings;
                     return (
                       <SettingsNumberInput
@@ -346,6 +414,12 @@ export function ChartSettingsPopover() {
         </Tab.Group>
 
         <div className="mt-4 pt-4 border-t flex justify-end gap-2">
+          <button
+            onClick={handleExportSettings}
+            className="px-3 py-1.5 text-sm text-gray-600 hover:text-gray-800"
+          >
+            Export Settings
+          </button>
           <button
             onClick={handleReset}
             className="px-3 py-1.5 text-sm text-gray-600 hover:text-gray-800"

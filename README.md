@@ -1,10 +1,20 @@
-# Weather Helper
+# Weather or Not
 
-## Remaining tasks
+A tool to help you decide whether or not to plan an outdoor event. The key feature is that it defaults to displaying a common day (like Friday), showing weather forecasts for consecutive chosen days (like March 21 and March 28).
 
-- Create a set of docs in the tool
-- Remove the circles?
-- Allow a chart to collapse to a boolean display with the exceptions being emphasized
+The site offers a set of charts for the weather conditions.
+
+## Screenshots
+
+### Desktop
+
+![](docs/20250318234311.png)
+
+### Mobile
+
+![](docs/20250318234438.png)
+
+![](docs/20250318234453.png)
 
 ## Overview
 
@@ -43,6 +53,10 @@ Query builder: <https://www.visualcrossing.com/weather-query-builder/#>
   - Mt Washington = wind
   - Louisiana = humid
 - Drop the image into ChatGPT to get starting point for UI
+- Build the core charting functionality - custom SVG
+- Build the various popovers and UI to drive the weather preferences and other details
+- Identify "prototype-able" parameters and pull them into a settings store
+- Refactor and document
 
 ## UI Progression
 
@@ -52,20 +66,29 @@ Initial prototype
 
 ![](docs/initial_ui_mobile.png)
 
-## Problems spotted during testing
+## UI Options
 
-- Get 1 more hour of data rendered if keeping the whole day plots
-- Probably want to interpolate data to 10 minute increments to get a smoother looking chart
-- Date list needs to overflow
-- Drop a vertical cursor on a weather chart to get detailed data for that time - sync across all charts in a panel
-- Ensure that the preference limits are considered in the axis limit logic
+Playing with the various parameters, you can achieve a number of different looks.
 
-## Prototype settings to wire up
+### Tighter look with no metrics
 
-- Theme colors - find every color and put it into a color picker
-- The opacity of the shaded region
-- Chart sizes
-- Chart margins and sizes
+```
+Aspect ratio = 3
+Max panel width = 400
+Show metric values = false
+```
+
+![](docs/20250318234914.png)
+
+## Prototype approach
+
+The main app was built with a number of hard coded magic values and other parameters. Once working, I extracted the parameters into a settings store. The store can be configured with an interface. These settings are persisted to local storage.
+
+Parameters include various chart styles, sizes, and margins. There are also some "should this be visible" flags to guide the overall UI.
+
+The settings also have an export function to quickly apply to the source code as the new "defaults".
+
+![](docs/20250318234115.png)
 
 ## Features
 
@@ -75,3 +98,9 @@ Initial prototype
 ## Comments while building
 
 - Converting the data structure to a flat list of time + metric values was a good move. Made it way easier to filter and process.
+
+## Future work
+
+- Interpolate data to 10 minute increments to get a smoother looking chart
+- Drop a vertical cursor on a weather chart to get detailed data for that time - sync across all charts in a panel
+- Allow user to show additional weather fields: imagine seeing `snow` along with preferences for snowshoeing.

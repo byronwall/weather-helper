@@ -29,6 +29,11 @@ export interface ChartSettings {
   gradientOpacityBelow: number;
   gradientStopCount: number;
 
+  // Line style settings
+  lineStyle: "straight" | "curved";
+  lineWidth: number;
+  pointSize: number;
+
   // Display settings
   visibleWeatherFields: string[];
 }
@@ -66,6 +71,11 @@ const defaultSettings: ChartSettings = {
   gradientOpacityAbove: 0.4,
   gradientOpacityBelow: 0.4,
   gradientStopCount: 3,
+
+  // Line style settings
+  lineStyle: "straight",
+  lineWidth: 2,
+  pointSize: 2,
 
   // Display settings
   visibleWeatherFields: ["temp", "windspeed", "precipprob", "humidity"],

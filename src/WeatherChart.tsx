@@ -125,6 +125,28 @@ export function WeatherChart({
     if (points.length === 0) {
       return "";
     }
+
+    if (settings.lineStyle === "curved") {
+      // Generate curved path using cubic bezier curves
+      let d = `M ${xScale(points[0].time)},${yScale(points[0].value)}`;
+      for (let i = 1; i < points.length; i++) {
+        const x1 = xScale(points[i - 1].time);
+        const y1 = yScale(points[i - 1].value);
+        const x2 = xScale(points[i].time);
+        const y2 = yScale(points[i].value);
+
+        // Control points for the curve
+        const cp1x = x1 + (x2 - x1) / 3;
+        const cp1y = y1;
+        const cp2x = x1 + ((x2 - x1) * 2) / 3;
+        const cp2y = y2;
+
+        d += ` C ${cp1x},${cp1y} ${cp2x},${cp2y} ${x2},${y2}`;
+      }
+      return d;
+    }
+
+    // Default straight line path
     let d = `M ${xScale(points[0].time)},${yScale(points[0].value)}`;
     for (let i = 1; i < points.length; i++) {
       const px = xScale(points[i].time);
@@ -498,21 +520,22 @@ export function WeatherChart({
           d={generatePathD(data)}
           fill="none"
           stroke={chartColor}
-          strokeWidth={2}
+          strokeWidth={settings.lineWidth}
           strokeLinecap="round"
           strokeLinejoin="round"
         />
 
         {/* Data points */}
-        {data.map((point, idx) => (
-          <circle
-            key={idx}
-            cx={xScale(point.time)}
-            cy={yScale(point.value)}
-            r={2}
-            fill={chartColor}
-          />
-        ))}
+        {settings.pointSize > 0 &&
+          data.map((point, idx) => (
+            <circle
+              key={idx}
+              cx={xScale(point.time)}
+              cy={yScale(point.value)}
+              r={settings.pointSize}
+              fill={chartColor}
+            />
+          ))}
 
         {/* Axes */}
         <line
