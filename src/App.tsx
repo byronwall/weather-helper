@@ -3,9 +3,11 @@ import { Header } from "./Header";
 import { WeatherCard } from "./WeatherCard";
 import { LocationInput } from "./components/LocationInput";
 import { useWeatherStore } from "./stores/weatherStore";
+import { useChartSettings } from "./stores/chartSettingsStore";
 
 export function App() {
   const { selectedDates, selectedLocation } = useWeatherStore();
+  const { settings } = useChartSettings();
 
   const gridRef = useRef<HTMLDivElement>(null);
   const [chartWidth, setChartWidth] = useState(0);
@@ -64,7 +66,7 @@ export function App() {
               grid-template-columns: repeat(${Math.min(
                 selectedDates.length,
                 2
-              )}, minmax(0, 1fr));
+              )}, minmax(0, ${settings.maxPanelWidth}px));
             }
           }
 
@@ -73,7 +75,7 @@ export function App() {
               grid-template-columns: repeat(${Math.min(
                 selectedDates.length,
                 3
-              )}, minmax(0, 1fr));
+              )}, minmax(0, ${settings.maxPanelWidth}px));
             }
           }
         `}

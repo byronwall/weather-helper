@@ -74,6 +74,14 @@ export function ChartSettingsPopover() {
           type: "number",
         },
         {
+          key: "maxPanelWidth",
+          label: "Max Panel Width",
+          min: 300,
+          max: 1200,
+          tooltip: "Maximum width of each weather panel",
+          type: "number",
+        },
+        {
           key: "maxChartHeight",
           label: "Max Height",
           min: 100,

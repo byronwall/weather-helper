@@ -6,6 +6,7 @@ export interface ChartSettings {
   chartAspectRatio: number;
   maxChartHeight: number;
   maxChartWidth: number;
+  maxPanelWidth: number;
   topGutterHeight: number;
   bottomGutterHeight: number;
   leftAxisLabel: number;
@@ -43,6 +44,7 @@ const defaultSettings: ChartSettings = {
   chartAspectRatio: 1.8,
   maxChartHeight: 300,
   maxChartWidth: 1200,
+  maxPanelWidth: 600,
   topGutterHeight: 20,
   bottomGutterHeight: 40,
   leftAxisLabel: 30,
