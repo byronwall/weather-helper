@@ -80,6 +80,23 @@ Show metric values = false
 
 ![](docs/20250318234914.png)
 
+## Features
+
+- Synchronized axis limits per metric across all charts - subtle but makes it easier to compare across days with common axes
+- Preferences and other user specific data stored to local storage
+- Saved various sample data so you can quickly see how the tool works across a range of conditions (entering a location gives a real time data grab)
+
+## Tech Stack
+
+- TypeScript
+- Vite
+- React
+- Tailwind
+- Charts are custom SVG
+- React Headless for the Popover and TabsGroups
+- Lucide for icons
+- Zustand for the settings store (also makes the local storage persistence easy)
+
 ## Prototype approach
 
 The main app was built with a number of hard coded magic values and other parameters. Once working, I extracted the parameters into a settings store. The store can be configured with an interface. These settings are persisted to local storage.
@@ -89,11 +106,6 @@ Parameters include various chart styles, sizes, and margins. There are also some
 The settings also have an export function to quickly apply to the source code as the new "defaults".
 
 ![](docs/20250318234115.png)
-
-## Features
-
-- Synchronized axis limits per metric across all charts
-- Preferences and other user specific data stored to local storage
 
 ## Comments while building
 
