@@ -117,7 +117,7 @@ export function WeatherCard({ date, width }: WeatherCardProps) {
       )}
 
       <div className="mb-4 min-w-0">
-        <div className="space-y-2">
+        <div className="space-y-2 flex gap-2">
           {analysis.validTimeRanges.length > 0 ? (
             <>
               <p className="font-medium flex flex-wrap min-w-0">

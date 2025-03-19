@@ -47,7 +47,7 @@ export function WeatherChartPanel({
   });
 
   return (
-    <div className="flex flex-col gap-4 w-full">
+    <div className="flex flex-col w-full">
       {visibleFields.map((field) => (
         <div key={field} className="bg-white rounded-lg shadow w-full">
           <WeatherChart

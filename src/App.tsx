@@ -43,64 +43,36 @@ export function App() {
   }, [selectedDates.length]); // Re-run when number of dates changes
 
   return (
-    <>
-      <style>
-        {`
-          .weather-grid {
-            display: grid;
-            gap: 1rem;
-            width: 100%;
-            max-width: 1800px;
-            margin: 0 auto;
-            padding: 0 1rem;
-          }
-
-          @media (max-width: 767px) {
-            .weather-grid {
-              grid-template-columns: minmax(0, 1fr);
-            }
-          }
-
-          @media (min-width: 768px) {
-            .weather-grid {
-              grid-template-columns: repeat(${Math.min(
-                selectedDates.length,
-                2
-              )}, minmax(0, ${settings.maxPanelWidth}px));
-            }
-          }
-
-          @media (min-width: 1400px) {
-            .weather-grid {
-              grid-template-columns: repeat(${Math.min(
-                selectedDates.length,
-                3
-              )}, minmax(0, ${settings.maxPanelWidth}px));
-            }
-          }
-        `}
-      </style>
-      <div className="min-h-screen bg-gray-100">
-        <Header />
-        <main className="w-full p-4 space-y-4">
-          {!selectedLocation && (
-            <div className="bg-white rounded shadow p-4 w-fit mx-auto">
-              <LocationInput />
-            </div>
-          )}
-
-          <div className="weather-grid" ref={gridRef}>
-            {selectedDates &&
-              selectedDates
-                .sort((a, b) => a.getTime() - b.getTime())
-                .map((date) => (
-                  <div key={date.toISOString()}>
-                    <WeatherCard date={date} width={chartWidth} />
-                  </div>
-                ))}
+    <div className="min-h-screen bg-gray-100">
+      <Header />
+      <main className="w-full p-4 space-y-4">
+        {!selectedLocation && (
+          <div className="bg-white rounded shadow p-4 w-fit mx-auto">
+            <LocationInput />
           </div>
-        </main>
-      </div>
-    </>
+        )}
+
+        <div
+          ref={gridRef}
+          className="flex flex-col md:flex-row flex-wrap gap-4 justify-center max-w-[1800px] mx-auto px-4"
+        >
+          {selectedDates &&
+            selectedDates
+              .sort((a, b) => a.getTime() - b.getTime())
+              .map((date) => (
+                <div
+                  key={date.toISOString()}
+                  style={{ maxWidth: `${settings.maxPanelWidth}px` }}
+                  className="flex-1 min-w-[400px]"
+                >
+                  <WeatherCard
+                    date={date}
+                    width={Math.min(chartWidth, settings.maxPanelWidth + 32)}
+                  />
+                </div>
+              ))}
+        </div>
+      </main>
+    </div>
   );
 }

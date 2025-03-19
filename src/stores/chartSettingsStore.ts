@@ -68,7 +68,7 @@ const defaultSettings: ChartSettings = {
   gradientStopCount: 3,
 
   // Display settings
-  visibleWeatherFields: ["temp", "precip", "humidity", "windSpeed"],
+  visibleWeatherFields: ["temp", "windspeed", "precipprob", "humidity"],
 };
 
 export const useChartSettings = create<ChartSettingsStore>()(
